@@ -54,6 +54,11 @@ def _clean(value: Any) -> str:
     return str(value).strip()
 
 
+def _is_missing_like(value: str) -> bool:
+    v = _clean(value)
+    return (not v) or (v in {MISSING_VALUE, "未完全显示"})
+
+
 def _find_latest_source(source_override: str | None) -> Path:
     if source_override:
         p = Path(source_override)
@@ -154,7 +159,13 @@ def _populate_row_from_car(
             continue
         key = field_key_map[matched_alias]
         value = _value_from_info(info, key)
-        row[dest_field] = value or MISSING_VALUE
+        # Dongchedi now hides part of fields (icon_type=3) for many models.
+        # Keep historical values when live refresh returns hidden placeholders.
+        if _is_missing_like(value):
+            existing = _clean(row.get(dest_field, ""))
+            row[dest_field] = existing if not _is_missing_like(existing) else MISSING_VALUE
+        else:
+            row[dest_field] = value
 
     return row
 
