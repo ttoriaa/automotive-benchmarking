@@ -596,6 +596,46 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
         f"CLTC 续航均值 {f'{avg_cltc:.0f}' if avg_cltc is not None else '未明确'} km，可与 Dashboard 的分布图交叉验证。",
     ]
 
+    bubble_script = """
+  <script>
+    (function () {
+      const rows = __BUBBLE_PAYLOAD__;
+      if (!rows || rows.length === 0) {
+        document.getElementById('brandBubble').innerHTML = '<p class="sub" style="padding:12px">暂无品牌分布数据</p>';
+        return;
+      }
+      const x = rows.map(r => r.brand);
+      const y = rows.map(r => r.fastAvg === null ? 0 : r.fastAvg);
+      const size = rows.map(r => Math.max(14, Math.sqrt(r.count) * 9));
+      const text = rows.map(r => `${r.brand}<br>车型数: ${r.count}<br>平均快充: ${r.fastAvg ?? '未明确'} 分钟`);
+
+      Plotly.newPlot('brandBubble', [{
+        type: 'scatter',
+        mode: 'markers',
+        x,
+        y,
+        text,
+        hovertemplate: '%{text}<extra></extra>',
+        marker: {
+          size,
+          color: y,
+          colorscale: 'YlOrRd',
+          showscale: true,
+          opacity: 0.78,
+          line: { width: 1, color: 'rgba(20,32,43,0.35)' }
+        }
+      }], {
+        margin: { l: 60, r: 20, t: 10, b: 90 },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(255,255,255,0.35)',
+        xaxis: { title: '品牌', tickangle: -25 },
+        yaxis: { title: '平均快充时间(分钟)' },
+        font: { family: 'Segoe UI, PingFang SC, Microsoft YaHei, sans-serif', color: '#14202b' }
+      }, { responsive: true, displaylogo: false });
+    })();
+  </script>
+""".replace("__BUBBLE_PAYLOAD__", bubble_payload)
+
     return f"""<!doctype html>
 <html lang=\"zh-CN\">
 <head>
@@ -668,43 +708,7 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
       </div>
     </section>
   </div>
-  <script>
-    (function () {{
-      const rows = {bubble_payload};
-      if (!rows || rows.length === 0) {{
-        document.getElementById('brandBubble').innerHTML = '<p class="sub" style="padding:12px">暂无品牌分布数据</p>';
-        return;
-      }}
-      const x = rows.map(r => r.brand);
-      const y = rows.map(r => r.fastAvg === null ? 0 : r.fastAvg);
-      const size = rows.map(r => Math.max(14, Math.sqrt(r.count) * 9));
-      const text = rows.map(r => `${{r.brand}}<br>车型数: ${{r.count}}<br>平均快充: ${{r.fastAvg ?? '未明确'}} 分钟`);
-
-      Plotly.newPlot('brandBubble', [{
-        type: 'scatter',
-        mode: 'markers',
-        x,
-        y,
-        text,
-        hovertemplate: '%{{text}}<extra></extra>',
-        marker: {
-          size,
-          color: y,
-          colorscale: 'YlOrRd',
-          showscale: true,
-          opacity: 0.78,
-          line: { width: 1, color: 'rgba(20,32,43,0.35)' }
-        }
-      }], {
-        margin: { l: 60, r: 20, t: 10, b: 90 },
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        plot_bgcolor: 'rgba(255,255,255,0.35)',
-        xaxis: { title: '品牌', tickangle: -25 },
-        yaxis: { title: '平均快充时间(分钟)' },
-        font: { family: 'Segoe UI, PingFang SC, Microsoft YaHei, sans-serif', color: '#14202b' }
-      }, { responsive: true, displaylogo: false });
-    }})();
-  </script>
+  {bubble_script}
 </body>
 </html>
 """
