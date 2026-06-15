@@ -192,6 +192,60 @@ def _base_style() -> str:
       background: #fff;
       margin-top: 12px;
     }
+    .filter-shell {
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      padding: 14px;
+    }
+    .filter-title {
+      margin: 0 0 10px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      padding: 6px 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .chip select,
+    .chip input {
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--ink);
+      font-size: 13px;
+      min-width: 110px;
+    }
+    .chip.search input {
+      min-width: 180px;
+    }
+    .chip-btn {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--ink);
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .chip-btn:hover {
+      background: #f8fafc;
+    }
     .foot { margin-top: 12px; color: var(--muted); font-size: 12px; }
     @media (max-width: 700px) {
       body { padding: 10px; }
@@ -274,39 +328,56 @@ def _build_data_html(latest_date: str, rows: list[dict[str, str]]) -> str:
         headers = list(rows[0].keys())
         brand_col = _pick_column(headers, ["品牌"])
         power_col = _pick_column(headers, ["动力形式", "能源类型", "驱动形式"])
+        battery_col = _pick_column(headers, ["电池类型", "电池种类", "电池材质"])
+        cell_brand_col = _pick_column(headers, ["电芯品牌", "电芯厂商", "电池品牌", "电信品牌"])
 
         brands = sorted({(r.get(brand_col, "") if brand_col else "").strip() for r in rows if (r.get(brand_col, "") if brand_col else "").strip()})
         powers = sorted({(r.get(power_col, "") if power_col else "").strip() for r in rows if (r.get(power_col, "") if power_col else "").strip()})
+        batteries = sorted({(r.get(battery_col, "") if battery_col else "").strip() for r in rows if (r.get(battery_col, "") if battery_col else "").strip()})
+        cell_brands = sorted({(r.get(cell_brand_col, "") if cell_brand_col else "").strip() for r in rows if (r.get(cell_brand_col, "") if cell_brand_col else "").strip()})
 
         filter_html = f"""
-      <div class=\"grid\" style=\"margin-top:14px\">
-        <article class=\"card\">
-          <h3 style=\"margin:0 0 8px\">筛选器</h3>
-          <div style=\"display:flex;flex-wrap:wrap;gap:10px\">
-            <label>品牌
-              <select id=\"brandFilter\" style=\"margin-left:6px\"> 
-                <option value=\"\">全部</option>
-                {''.join(f'<option value="{html.escape(x)}">{html.escape(x)}</option>' for x in brands)}
-              </select>
-            </label>
-            <label>动力形式
-              <select id=\"powerFilter\" style=\"margin-left:6px\">
-                <option value=\"\">全部</option>
-                {''.join(f'<option value="{html.escape(x)}">{html.escape(x)}</option>' for x in powers)}
-              </select>
-            </label>
-            <label>高压平台
-              <select id=\"hvFilter\" style=\"margin-left:6px\">
-                <option value=\"\">全部</option>
-                <option value=\"800V及以上\">800V及以上</option>
-                <option value=\"800V以下\">800V以下</option>
-                <option value=\"未知\">未知</option>
-              </select>
-            </label>
-            <button id=\"clearFilters\" type=\"button\">清空筛选</button>
-          </div>
-          <p class=\"sub\" id=\"filterStat\" style=\"margin-top:10px\">显示全部 {len(rows)} 条记录</p>
-        </article>
+      <div class=\"filter-shell\">
+        <h3 class=\"filter-title\">Filter</h3>
+        <div class=\"filter-row\">
+          <label class=\"chip\">品牌
+            <select id=\"brandFilter\"> 
+              <option value=\"\">全部</option>
+              {''.join(f'<option value="{html.escape(x)}">{html.escape(x)}</option>' for x in brands)}
+            </select>
+          </label>
+          <label class=\"chip\">动力形式
+            <select id=\"powerFilter\">
+              <option value=\"\">全部</option>
+              {''.join(f'<option value="{html.escape(x)}">{html.escape(x)}</option>' for x in powers)}
+            </select>
+          </label>
+          <label class=\"chip\">高压平台
+            <select id=\"hvFilter\">
+              <option value=\"\">全部</option>
+              <option value=\"800V及以上\">800V及以上</option>
+              <option value=\"800V以下\">800V以下</option>
+              <option value=\"未知\">未知</option>
+            </select>
+          </label>
+          <label class=\"chip\">电池类型
+            <select id=\"batteryFilter\">
+              <option value=\"\">全部</option>
+              {''.join(f'<option value="{html.escape(x)}">{html.escape(x)}</option>' for x in batteries)}
+            </select>
+          </label>
+          <label class=\"chip\">电芯品牌
+            <select id=\"cellBrandFilter\">
+              <option value=\"\">全部</option>
+              {''.join(f'<option value="{html.escape(x)}">{html.escape(x)}</option>' for x in cell_brands)}
+            </select>
+          </label>
+          <label class=\"chip search\">模糊搜索
+            <input id=\"keywordFilter\" type=\"text\" placeholder=\"车型/品牌/电池关键字\" />
+          </label>
+          <button id=\"clearFilters\" class=\"chip-btn\" type=\"button\">清空筛选</button>
+        </div>
+        <p class=\"sub\" id=\"filterStat\" style=\"margin-top:10px\">显示全部 {len(rows)} 条记录</p>
       </div>
 """
 
@@ -315,11 +386,17 @@ def _build_data_html(latest_date: str, rows: list[dict[str, str]]) -> str:
         for r in rows:
             brand_val = (r.get(brand_col, "") if brand_col else "").strip()
             power_val = (r.get(power_col, "") if power_col else "").strip()
+            battery_val = (r.get(battery_col, "") if battery_col else "").strip()
+            cell_brand_val = (r.get(cell_brand_col, "") if cell_brand_col else "").strip()
+            search_text = " ".join(str(r.get(h, "")) for h in headers).lower()
             hv_val = _high_voltage_tag(r)
             row_attrs = (
                 f'data-brand="{html.escape(brand_val)}" '
                 f'data-power="{html.escape(power_val)}" '
-                f'data-hv="{html.escape(hv_val)}"'
+              f'data-hv="{html.escape(hv_val)}" '
+              f'data-battery="{html.escape(battery_val)}" '
+              f'data-cell-brand="{html.escape(cell_brand_val)}" '
+              f'data-search="{html.escape(search_text)}"'
             )
             body.append(
                 f"<tr {row_attrs}>"
@@ -334,6 +411,9 @@ def _build_data_html(latest_date: str, rows: list[dict[str, str]]) -> str:
       const brand = document.getElementById('brandFilter');
       const power = document.getElementById('powerFilter');
       const hv = document.getElementById('hvFilter');
+      const battery = document.getElementById('batteryFilter');
+      const cellBrand = document.getElementById('cellBrandFilter');
+      const keyword = document.getElementById('keywordFilter');
       const clearBtn = document.getElementById('clearFilters');
       const stat = document.getElementById('filterStat');
       const rows = Array.from(document.querySelectorAll('tbody tr'));
@@ -342,13 +422,19 @@ def _build_data_html(latest_date: str, rows: list[dict[str, str]]) -> str:
         const b = brand.value;
         const p = power.value;
         const h = hv.value;
+        const bt = battery.value;
+        const cb = cellBrand.value;
+        const kw = keyword.value.trim().toLowerCase();
         let visible = 0;
 
         rows.forEach((row) => {
           const okBrand = !b || row.dataset.brand === b;
           const okPower = !p || row.dataset.power === p;
           const okHv = !h || row.dataset.hv === h;
-          const show = okBrand && okPower && okHv;
+          const okBattery = !bt || row.dataset.battery === bt;
+          const okCellBrand = !cb || row.dataset.cellBrand === cb;
+          const okKeyword = !kw || row.dataset.search.includes(kw);
+          const show = okBrand && okPower && okHv && okBattery && okCellBrand && okKeyword;
           row.style.display = show ? '' : 'none';
           if (show) {
             visible += 1;
@@ -361,10 +447,16 @@ def _build_data_html(latest_date: str, rows: list[dict[str, str]]) -> str:
       brand.addEventListener('change', applyFilters);
       power.addEventListener('change', applyFilters);
       hv.addEventListener('change', applyFilters);
+      battery.addEventListener('change', applyFilters);
+      cellBrand.addEventListener('change', applyFilters);
+      keyword.addEventListener('input', applyFilters);
       clearBtn.addEventListener('click', () => {
         brand.value = '';
         power.value = '';
         hv.value = '';
+        battery.value = '';
+        cellBrand.value = '';
+        keyword.value = '';
         applyFilters();
       });
     })();
