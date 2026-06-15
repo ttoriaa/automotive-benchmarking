@@ -14,6 +14,8 @@ from typing import Any
 import requests
 from dotenv import load_dotenv
 
+from refresh_dongchedi_source import refresh_source_csv
+
 ROOT = Path(__file__).resolve().parents[1]
 REPORT_ROOT = ROOT / "reports" / "dongchedi_daily"
 PRICE_MAP_DEFAULT = ROOT / "dongchedi_price_map.csv"
@@ -828,7 +830,47 @@ def run(args: argparse.Namespace) -> int:
     _load_dotenv_once()
 
     run_date = args.date or dt.date.today().isoformat()
-    source_file = _find_latest_source(args.source)
+    output_dir = REPORT_ROOT / run_date
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    refresh_log_path = output_dir / "refresh_log.json"
+    refresh_failures_path = output_dir / "refresh_failures.json"
+
+    refresh_result: dict[str, Any] | None = None
+    if args.refresh_source:
+        base_source = _find_latest_source(args.source)
+        refreshed_source = ROOT / f"dongchedi_full_configs_{run_date}.csv"
+        refresh_result = refresh_source_csv(
+            base_source=base_source,
+            output_csv=refreshed_source,
+            max_series=args.refresh_source_max_series,
+            timeout_sec=args.refresh_source_timeout,
+            min_successes=args.refresh_source_min_successes,
+            min_success_rate=args.refresh_source_min_success_rate,
+            strict_mode=args.refresh_source_strict,
+        )
+        refresh_log_path.write_text(json.dumps(refresh_result, ensure_ascii=False, indent=2), encoding="utf-8")
+        refresh_failures = [
+            item for item in refresh_result.get("series_results", []) if _clean(item.get("status")) != "ok"
+        ]
+        refresh_failures_path.write_text(
+            json.dumps(
+                {
+                    "run_date": run_date,
+                    "target_series": refresh_result.get("target_series", 0),
+                    "refreshed_series": refresh_result.get("refreshed_series", 0),
+                    "success_rate": refresh_result.get("success_rate", 0.0),
+                    "failed_series": len(refresh_failures),
+                    "failures": refresh_failures,
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        source_file = refreshed_source
+    else:
+        source_file = _find_latest_source(args.source)
     source_rows = _load_csv_rows(source_file)
 
     price_map_path = Path(args.price_map)
@@ -909,9 +951,6 @@ def run(args: argparse.Namespace) -> int:
 
     diff = _build_diff(final_rows, previous_rows)
 
-    output_dir = REPORT_ROOT / run_date
-    output_dir.mkdir(parents=True, exist_ok=True)
-
     filtered_csv = output_dir / "filtered.csv"
     filtered_json = output_dir / "filtered.json"
     summary_md = output_dir / "summary.md"
@@ -972,6 +1011,7 @@ def run(args: argparse.Namespace) -> int:
         "dry_run": args.dry_run,
         "skip_confluence": args.skip_confluence,
         "confluence_result": confluence_result,
+        "refresh_result": refresh_result,
         "output_dir": str(output_dir),
     }
     _write_log(log)
@@ -980,6 +1020,13 @@ def run(args: argparse.Namespace) -> int:
     print(f"Source: {source_file}")
     print(f"Output: {output_dir}")
     print(f"Rows: {len(final_rows)}")
+    if refresh_result:
+        print(
+            "Source refresh: "
+            f"{refresh_result['refreshed_series']}/{refresh_result['target_series']} series refreshed, "
+            f"{refresh_result['failed_series']} failed, "
+            f"success_rate={refresh_result.get('success_rate', 0):.2%}"
+        )
     if confluence_result:
         print(f"Confluence updated: page {confluence_result['page_id']} v{confluence_result['version']}")
     elif args.dry_run or args.skip_confluence:
@@ -1007,6 +1054,40 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=7,
         help="Look back this many days to detect and replay missing report dates.",
+    )
+    parser.add_argument(
+        "--refresh-source",
+        action="store_true",
+        help="Refresh the latest Dongchedi source CSV from live params pages before generating the report.",
+    )
+    parser.add_argument(
+        "--refresh-source-timeout",
+        type=int,
+        default=25,
+        help="Per-series timeout in seconds for live Dongchedi refresh.",
+    )
+    parser.add_argument(
+        "--refresh-source-max-series",
+        type=int,
+        default=0,
+        help="Limit how many series IDs to refresh. 0 means all series in the base source.",
+    )
+    parser.add_argument(
+        "--refresh-source-min-successes",
+        type=int,
+        default=1,
+        help="Fail refresh when fewer than this many series pages are refreshed successfully.",
+    )
+    parser.add_argument(
+        "--refresh-source-strict",
+        action="store_true",
+        help="Enable strict mode: fail run when refresh success rate is below threshold.",
+    )
+    parser.add_argument(
+        "--refresh-source-min-success-rate",
+        type=float,
+        default=0.0,
+        help="Minimum refresh success rate in [0,1] used with --refresh-source-strict.",
     )
     parser.add_argument("--confluence-page-id", default="", help="Confluence page ID for daily append.")
     parser.add_argument("--skip-confluence", action="store_true", help="Generate local artifacts only.")

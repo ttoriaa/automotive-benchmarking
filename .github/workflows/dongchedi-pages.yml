@@ -8,7 +8,8 @@ on:
       - scripts/**
       - reports/**
   schedule:
-    - cron: "0 1 * * *"
+    - cron: "0 1 * * 1"
+    - cron: "0 1 1 * *"
   workflow_dispatch:
 
 permissions:
@@ -39,7 +40,7 @@ jobs:
 
       - name: Generate daily report
         run: |
-          python scripts/run_dongchedi_daily.py --date "$(date -u +%F)" --skip-confluence --no-backfill-missing
+          python scripts/run_dongchedi_daily.py --date "$(date -u +%F)" --skip-confluence --no-backfill-missing --refresh-source --refresh-source-timeout 25 --refresh-source-min-successes 0
 
       - name: Build visualization
         run: |
