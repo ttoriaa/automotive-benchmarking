@@ -686,7 +686,7 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
         x,
         y,
         text,
-        hovertemplate: '%{text}<extra></extra>',
+        hovertemplate: '%{{text}}<extra></extra>',
         marker: {
           size,
           color: y,
