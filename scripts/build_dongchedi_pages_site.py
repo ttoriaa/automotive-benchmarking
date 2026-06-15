@@ -216,18 +216,7 @@ def _nav(active: str) -> str:
     return f"<nav class=\"nav\">{''.join(links)}</nav>"
 
 
-def _build_intro_html(latest_date: str, report_dirs: list[Path]) -> str:
-    hist_cards: list[str] = []
-    for report_dir in reversed(report_dirs[:12]):
-        hist_cards.append(
-            "<article class=\"card\">"
-            f"<h3>{html.escape(report_dir.name)}</h3>"
-            f"<p class=\"sub\">日报归档与对应图表。</p>"
-            f"<p><a href=\"reports/{report_dir.name}/summary.html\">summary</a> | "
-            f"<a href=\"reports/{report_dir.name}/charging_visualization_dashboard.html\">dashboard</a></p>"
-            "</article>"
-        )
-
+def _build_intro_html(latest_date: str) -> str:
     return f"""<!doctype html>
 <html lang=\"zh-CN\">
 <head>
@@ -252,9 +241,7 @@ def _build_intro_html(latest_date: str, report_dirs: list[Path]) -> str:
         <article class=\"card\"><h3>Benchmark 维度</h3><p class=\"sub\">快充时间、充电窗口、高压平台、电池容量、电池能量密度、CLTC续航等。</p></article>
         <article class=\"card\"><h3>使用方式</h3><p class=\"sub\">先看数据表，再看可视化，最后在趋势页查看关键 takeaway。</p></article>
       </div>
-      <h2 style=\"margin-top:16px\">历史归档</h2>
-      <div class=\"grid\">{''.join(hist_cards)}</div>
-      <p class=\"foot\">注: 页面 2/3/4 默认基于最新日期数据构建。</p>
+      <p class=\"foot\">注: 本站采用最新一期数据覆盖发布（适合按月更新），页面 2/3/4 均基于同一期数据构建。</p>
     </section>
   </div>
 </body>
@@ -262,16 +249,127 @@ def _build_intro_html(latest_date: str, report_dirs: list[Path]) -> str:
 """
 
 
+def _pick_column(headers: list[str], candidates: list[str]) -> str | None:
+    for c in candidates:
+        if c in headers:
+            return c
+    return None
+
+
+def _high_voltage_tag(row: dict[str, str]) -> str:
+    v = _num(row.get("高压平台电压(V)", ""))
+    if v is None:
+        return "未知"
+    if v >= 800:
+        return "800V及以上"
+    return "800V以下"
+
+
 def _build_data_html(latest_date: str, rows: list[dict[str, str]]) -> str:
     if not rows:
         table_html = "<p class=\"sub\">暂无数据。</p>"
+        filter_html = ""
+        script_html = ""
     else:
         headers = list(rows[0].keys())
+        brand_col = _pick_column(headers, ["品牌"])
+        power_col = _pick_column(headers, ["动力形式", "能源类型", "驱动形式"])
+
+        brands = sorted({(r.get(brand_col, "") if brand_col else "").strip() for r in rows if (r.get(brand_col, "") if brand_col else "").strip()})
+        powers = sorted({(r.get(power_col, "") if power_col else "").strip() for r in rows if (r.get(power_col, "") if power_col else "").strip()})
+
+        filter_html = f"""
+      <div class=\"grid\" style=\"margin-top:14px\">
+        <article class=\"card\">
+          <h3 style=\"margin:0 0 8px\">筛选器</h3>
+          <div style=\"display:flex;flex-wrap:wrap;gap:10px\">
+            <label>品牌
+              <select id=\"brandFilter\" style=\"margin-left:6px\"> 
+                <option value=\"\">全部</option>
+                {''.join(f'<option value="{html.escape(x)}">{html.escape(x)}</option>' for x in brands)}
+              </select>
+            </label>
+            <label>动力形式
+              <select id=\"powerFilter\" style=\"margin-left:6px\">
+                <option value=\"\">全部</option>
+                {''.join(f'<option value="{html.escape(x)}">{html.escape(x)}</option>' for x in powers)}
+              </select>
+            </label>
+            <label>高压平台
+              <select id=\"hvFilter\" style=\"margin-left:6px\">
+                <option value=\"\">全部</option>
+                <option value=\"800V及以上\">800V及以上</option>
+                <option value=\"800V以下\">800V以下</option>
+                <option value=\"未知\">未知</option>
+              </select>
+            </label>
+            <button id=\"clearFilters\" type=\"button\">清空筛选</button>
+          </div>
+          <p class=\"sub\" id=\"filterStat\" style=\"margin-top:10px\">显示全部 {len(rows)} 条记录</p>
+        </article>
+      </div>
+"""
+
         thead = "<tr>" + "".join(f"<th>{html.escape(h)}</th>" for h in headers) + "</tr>"
         body = []
         for r in rows:
-            body.append("<tr>" + "".join(f"<td>{html.escape(str(r.get(h, '')))}</td>" for h in headers) + "</tr>")
+            brand_val = (r.get(brand_col, "") if brand_col else "").strip()
+            power_val = (r.get(power_col, "") if power_col else "").strip()
+            hv_val = _high_voltage_tag(r)
+            row_attrs = (
+                f'data-brand="{html.escape(brand_val)}" '
+                f'data-power="{html.escape(power_val)}" '
+                f'data-hv="{html.escape(hv_val)}"'
+            )
+            body.append(
+                f"<tr {row_attrs}>"
+                + "".join(f"<td>{html.escape(str(r.get(h, '')))}</td>" for h in headers)
+                + "</tr>"
+            )
         table_html = f"<div class=\"table-wrap\"><table><thead>{thead}</thead><tbody>{''.join(body)}</tbody></table></div>"
+
+        script_html = """
+  <script>
+    (function () {
+      const brand = document.getElementById('brandFilter');
+      const power = document.getElementById('powerFilter');
+      const hv = document.getElementById('hvFilter');
+      const clearBtn = document.getElementById('clearFilters');
+      const stat = document.getElementById('filterStat');
+      const rows = Array.from(document.querySelectorAll('tbody tr'));
+
+      function applyFilters() {
+        const b = brand.value;
+        const p = power.value;
+        const h = hv.value;
+        let visible = 0;
+
+        rows.forEach((row) => {
+          const okBrand = !b || row.dataset.brand === b;
+          const okPower = !p || row.dataset.power === p;
+          const okHv = !h || row.dataset.hv === h;
+          const show = okBrand && okPower && okHv;
+          row.style.display = show ? '' : 'none';
+          if (show) {
+            visible += 1;
+          }
+        });
+
+        stat.textContent = `筛选后显示 ${visible} 条记录`;
+      }
+
+      brand.addEventListener('change', applyFilters);
+      power.addEventListener('change', applyFilters);
+      hv.addEventListener('change', applyFilters);
+      clearBtn.addEventListener('click', () => {
+        brand.value = '';
+        power.value = '';
+        hv.value = '';
+        applyFilters();
+      });
+    })();
+  </script>
+"""
 
     return f"""<!doctype html>
 <html lang=\"zh-CN\">
@@ -292,9 +390,11 @@ def _build_data_html(latest_date: str, rows: list[dict[str, str]]) -> str:
         <span class=\"pill\">记录数: {len(rows)}</span>
         <span class=\"pill\">数据文件: reports/{latest_date}/filtered.csv</span>
       </div>
+      {filter_html}
       {table_html}
     </section>
   </div>
+{script_html}
 </body>
 </html>
 """
@@ -408,35 +508,36 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
 
 
 def main() -> None:
-  latest_report = _latest_report_dir()
-  report_dirs = _report_dirs()
-  latest_date = latest_report.name
-  latest_csv = latest_report / "filtered.csv"
-  latest_rows = _load_rows(latest_csv) if latest_csv.exists() else []
+    latest_report = _latest_report_dir()
+    latest_date = latest_report.name
+    latest_csv = latest_report / "filtered.csv"
+    latest_rows = _load_rows(latest_csv) if latest_csv.exists() else []
 
-  SITE_ROOT.mkdir(parents=True, exist_ok=True)
+    # Always publish a single latest snapshot so new runs overwrite prior data.
+    if SITE_ROOT.exists():
+        shutil.rmtree(SITE_ROOT)
+    SITE_ROOT.mkdir(parents=True, exist_ok=True)
 
-  for report_dir in report_dirs:
-    _copy_report_dir(report_dir)
+    _copy_report_dir(latest_report)
+    _write_latest_alias(latest_report)
+    (SITE_ROOT / "index.html").write_text(_build_intro_html(latest_date), encoding="utf-8")
+    (SITE_ROOT / "data.html").write_text(_build_data_html(latest_date, latest_rows), encoding="utf-8")
+    (SITE_ROOT / "dashboard.html").write_text(_build_dashboard_html(latest_date), encoding="utf-8")
+    (SITE_ROOT / "insights.html").write_text(_build_insights_html(latest_date, latest_rows), encoding="utf-8")
 
-  _write_latest_alias(latest_report)
-  (SITE_ROOT / "index.html").write_text(_build_intro_html(latest_date, report_dirs), encoding="utf-8")
-  (SITE_ROOT / "data.html").write_text(_build_data_html(latest_date, latest_rows), encoding="utf-8")
-  (SITE_ROOT / "dashboard.html").write_text(_build_dashboard_html(latest_date), encoding="utf-8")
-  (SITE_ROOT / "insights.html").write_text(_build_insights_html(latest_date, latest_rows), encoding="utf-8")
-
-  print(
-    json.dumps(
-      {
-        "status": "ok",
-        "latest_report": latest_report.name,
-        "reports": len(report_dirs),
-        "pages": ["index.html", "data.html", "dashboard.html", "insights.html"],
-      },
-      ensure_ascii=False,
-      indent=2,
+    print(
+        json.dumps(
+            {
+                "status": "ok",
+                "latest_report": latest_report.name,
+                "reports": 1,
+                "publish_mode": "latest-only-overwrite",
+                "pages": ["index.html", "data.html", "dashboard.html", "insights.html"],
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
     )
-  )
 
 
 if __name__ == "__main__":
