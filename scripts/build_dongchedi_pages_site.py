@@ -107,6 +107,18 @@ def _top_brands(rows: list[dict[str, str]], top_n: int = 8) -> list[tuple[str, i
     return sorted(cnt.items(), key=lambda x: (-x[1], x[0]))[:top_n]
 
 
+def _is_missing_badge_value(value: str) -> bool:
+  text = (value or "").strip()
+  return text in {"未明确显示", "未完全显示"}
+
+
+def _render_table_cell(value: str) -> str:
+  text = str(value or "")
+  if _is_missing_badge_value(text):
+    return f'<span class="missing-badge">{html.escape(text)}</span>'
+  return html.escape(text)
+
+
 def _base_style() -> str:
     return """
   <style>
@@ -202,6 +214,18 @@ def _base_style() -> str:
       border-radius: 12px;
       background: #fff;
       margin-top: 12px;
+    }
+    .missing-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(93, 104, 116, 0.18);
+      background: #eef2f6;
+      color: #6b7683;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.2;
     }
     .filter-shell {
       margin-top: 14px;
@@ -411,7 +435,7 @@ def _build_data_html(latest_date: str, rows: list[dict[str, str]]) -> str:
             )
             body.append(
                 f"<tr {row_attrs}>"
-                + "".join(f"<td>{html.escape(str(r.get(h, '')))}</td>" for h in headers)
+              + "".join(f"<td>{_render_table_cell(str(r.get(h, '')))}</td>" for h in headers)
                 + "</tr>"
             )
         table_html = f"<div class=\"table-wrap\"><table><thead>{thead}</thead><tbody>{''.join(body)}</tbody></table></div>"

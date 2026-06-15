@@ -1,0 +1,15 @@
+{
+  "run_date": "2026-06-15",
+  "target_series": 1,
+  "refreshed_series": 0,
+  "success_rate": 0.0,
+  "failed_series": 1,
+  "failures": [
+    {
+      "series_id": "3503",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 3503 refresh failed: HTTPSConnectionPool(host='www.dongchedi.com', port=443): Max retries exceeded with url: /auto/params-carIds-x-3503 (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.dongchedi.com', port=443) at 0x22846b38a50>, 'Connection to www.dongchedi.com timed out. (connect timeout=3)'))"
+    }
+  ]
+}
