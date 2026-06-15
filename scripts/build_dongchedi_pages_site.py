@@ -88,6 +88,17 @@ def _num(value: str) -> float | None:
         return None
 
 
+def _median(values: list[float]) -> float | None:
+    if not values:
+        return None
+    values = sorted(values)
+    n = len(values)
+    mid = n // 2
+    if n % 2 == 1:
+        return values[mid]
+    return (values[mid - 1] + values[mid]) / 2
+
+
 def _top_brands(rows: list[dict[str, str]], top_n: int = 8) -> list[tuple[str, int]]:
     cnt: dict[str, int] = {}
     for r in rows:
@@ -524,6 +535,9 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
     total = len(rows)
     fast_values = [x for x in (_num(r.get("快充时间(分钟)", "")) for r in rows) if x is not None]
     avg_fast = (sum(fast_values) / len(fast_values)) if fast_values else None
+    median_fast = _median(fast_values)
+    cltc_values = [x for x in (_num(r.get("纯电续航里程(km)CLTC", "")) for r in rows) if x is not None]
+    avg_cltc = (sum(cltc_values) / len(cltc_values)) if cltc_values else None
     high_voltage = sum(1 for r in rows if (_num(r.get("高压平台电压(V)", "")) or 0) >= 800)
     high_ratio = (high_voltage / total * 100) if total else 0
 
@@ -536,25 +550,51 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
     fastest = by_fast[:5]
     slowest = by_fast[-5:]
 
-    brands = _top_brands(rows)
-
-    def _render_rank(items: list[tuple[float, dict[str, str]]]) -> str:
+    def _render_rank_row(items: list[tuple[float, dict[str, str]]], tone: str) -> str:
         if not items:
             return "<p class=\"sub\">暂无可用数据</p>"
         cards = []
         for val, row in items:
+            voltage = _num(row.get("高压平台电压(V)", ""))
             cards.append(
-                "<article class=\"card\">"
+                f"<article class=\"rank-card {tone}\">"
                 f"<h3>{html.escape(row.get('车型', '未命名车型'))}</h3>"
                 f"<p class=\"sub\">品牌: {html.escape(row.get('品牌', '未明确'))}</p>"
                 f"<p class=\"sub\">快充时间: {val:.1f} 分钟</p>"
+                f"<p class=\"sub\">高压平台: {f'{voltage:.0f}V' if voltage is not None else '未明确'}</p>"
                 "</article>"
             )
-        return "<div class=\"grid\">" + "".join(cards) + "</div>"
+        return "<div class=\"rank-row\">" + "".join(cards) + "</div>"
 
-    brand_html = "".join(
-        f"<li>{html.escape(name)}: {count} 款</li>" for name, count in brands
-    ) or "<li>暂无</li>"
+    brand_bucket: dict[str, dict[str, float | int]] = {}
+    for r in rows:
+        b = (r.get("品牌") or "未明确").strip()
+        x = brand_bucket.setdefault(b, {"count": 0, "fast_sum": 0.0, "fast_n": 0})
+        x["count"] = int(x["count"]) + 1
+        fv = _num(r.get("快充时间(分钟)", ""))
+        if fv is not None:
+            x["fast_sum"] = float(x["fast_sum"]) + fv
+            x["fast_n"] = int(x["fast_n"]) + 1
+
+    bubble_rows: list[dict[str, float | str | int]] = []
+    for b, stat in sorted(brand_bucket.items(), key=lambda kv: (-int(kv[1]["count"]), kv[0]))[:20]:
+        fast_n = int(stat["fast_n"])
+        fast_avg = (float(stat["fast_sum"]) / fast_n) if fast_n else None
+        bubble_rows.append(
+            {
+                "brand": b,
+                "count": int(stat["count"]),
+                "fastAvg": round(fast_avg, 2) if fast_avg is not None else None,
+            }
+        )
+
+    bubble_payload = json.dumps(bubble_rows, ensure_ascii=False)
+
+    insight_lines = [
+        f"样本 {total} 款车型中，800V及以上占比 {high_ratio:.1f}% ，说明高压平台在当前样本中已形成明显渗透。",
+        f"快充时间均值 {f'{avg_fast:.1f}' if avg_fast is not None else '未明确'} 分钟，中位数 {f'{median_fast:.1f}' if median_fast is not None else '未明确'} 分钟。",
+        f"CLTC 续航均值 {f'{avg_cltc:.0f}' if avg_cltc is not None else '未明确'} km，可与 Dashboard 的分布图交叉验证。",
+    ]
 
     return f"""<!doctype html>
 <html lang=\"zh-CN\">
@@ -563,6 +603,35 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
   <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
   <title>Insights & Takeaways</title>
 {_base_style()}
+  <script src=\"https://cdn.plot.ly/plotly-2.35.2.min.js\"></script>
+  <style>
+    .rank-row {{
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-top: 10px;
+    }}
+    .rank-card {{
+      min-width: 270px;
+      max-width: 320px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      padding: 12px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.06);
+    }}
+    .rank-card.fast {{ border-left: 5px solid #2a9d8f; }}
+    .rank-card.slow {{ border-left: 5px solid #e76f51; }}
+    .bubble-wrap {{
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,.8);
+      padding: 6px;
+    }}
+    .bubble-chart {{ height: 420px; }}
+  </style>
 </head>
 <body>
   <div class=\"shell\">
@@ -577,14 +646,19 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
         <span class=\"pill\">平均快充时间: {f'{avg_fast:.1f} 分钟' if avg_fast is not None else '未明确'}</span>
       </div>
 
-      <h2 style=\"margin-top:16px\">Top 品牌分布</h2>
-      <ul>{brand_html}</ul>
+      <h2 style=\"margin-top:16px\">同步结论（来自数据表与 Dashboard 同批数据）</h2>
+      <div class=\"grid\">
+        {''.join(f'<article class="card"><p class="sub">{html.escape(line)}</p></article>' for line in insight_lines)}
+      </div>
+
+      <h2 style=\"margin-top:16px\">品牌分布 Bubble</h2>
+      <div class=\"bubble-wrap\"><div id=\"brandBubble\" class=\"bubble-chart\"></div></div>
 
       <h2 style=\"margin-top:16px\">最快快充车型（Top 5）</h2>
-      {_render_rank(fastest)}
+      {_render_rank_row(fastest, 'fast')}
 
       <h2 style=\"margin-top:16px\">最慢快充车型（Bottom 5）</h2>
-      {_render_rank(slowest)}
+      {_render_rank_row(slowest, 'slow')}
 
       <h2 style=\"margin-top:16px\">Takeaways</h2>
       <div class=\"grid\">
@@ -594,6 +668,43 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
       </div>
     </section>
   </div>
+  <script>
+    (function () {{
+      const rows = {bubble_payload};
+      if (!rows || rows.length === 0) {{
+        document.getElementById('brandBubble').innerHTML = '<p class="sub" style="padding:12px">暂无品牌分布数据</p>';
+        return;
+      }}
+      const x = rows.map(r => r.brand);
+      const y = rows.map(r => r.fastAvg === null ? 0 : r.fastAvg);
+      const size = rows.map(r => Math.max(14, Math.sqrt(r.count) * 9));
+      const text = rows.map(r => `${{r.brand}}<br>车型数: ${{r.count}}<br>平均快充: ${{r.fastAvg ?? '未明确'}} 分钟`);
+
+      Plotly.newPlot('brandBubble', [{
+        type: 'scatter',
+        mode: 'markers',
+        x,
+        y,
+        text,
+        hovertemplate: '%{text}<extra></extra>',
+        marker: {
+          size,
+          color: y,
+          colorscale: 'YlOrRd',
+          showscale: true,
+          opacity: 0.78,
+          line: { width: 1, color: 'rgba(20,32,43,0.35)' }
+        }
+      }], {
+        margin: { l: 60, r: 20, t: 10, b: 90 },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(255,255,255,0.35)',
+        xaxis: { title: '品牌', tickangle: -25 },
+        yaxis: { title: '平均快充时间(分钟)' },
+        font: { family: 'Segoe UI, PingFang SC, Microsoft YaHei, sans-serif', color: '#14202b' }
+      }, { responsive: true, displaylogo: false });
+    }})();
+  </script>
 </body>
 </html>
 """
