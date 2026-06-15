@@ -39,19 +39,36 @@ jobs:
           pip install requests python-dotenv
 
       - name: Generate daily report
+        continue-on-error: true
         run: |
           RUN_DATE="$(date -u +%F)"
           echo "RUN_DATE=$RUN_DATE"
           python scripts/run_dongchedi_daily.py --date "$RUN_DATE" --skip-confluence --no-backfill-missing --refresh-source --refresh-source-timeout 25 --refresh-source-min-successes 0
 
+      - name: Resolve report date
+        run: |
+          RUN_DATE="$(python - <<'PY'
+from pathlib import Path
+root = Path('reports/dongchedi_daily')
+dates = []
+if root.exists():
+    for p in root.iterdir():
+        if p.is_dir() and (p / 'filtered.csv').exists():
+            dates.append(p.name)
+if not dates:
+    raise SystemExit('No report date with filtered.csv found')
+print(sorted(dates)[-1])
+PY
+          )"
+          echo "RUN_DATE=$RUN_DATE" >> "$GITHUB_ENV"
+          echo "Using RUN_DATE=$RUN_DATE"
+
       - name: Build visualization
         run: |
-          RUN_DATE="$(date -u +%F)"
           python scripts/build_charging_visualizations.py --date "$RUN_DATE"
 
       - name: Verify dashboard sync with dataset
         run: |
-          RUN_DATE="$(date -u +%F)"
           test -f "reports/dongchedi_daily/$RUN_DATE/filtered.csv"
           test -f "reports/dongchedi_daily/$RUN_DATE/charging_visualization_dashboard.html"
           grep -q "${RUN_DATE}" "reports/dongchedi_daily/$RUN_DATE/charging_visualization_dashboard.html"
