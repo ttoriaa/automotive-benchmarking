@@ -638,7 +638,7 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
     {_nav('insights')}
     <section class=\"panel\">
       <h1>趋势总结与 Takeaways</h1>
-      <p class=\"sub\">基于数据表页同批数据，提炼关键趋势与可执行结论，帮助你快速做车型性能 benchmarking 决策。</p>
+      <p class=\"sub\">基于数据表页与 Dashboard 同批数据，提炼关键趋势与可执行结论，帮助你快速做车型性能 benchmarking 决策。</p>
       <div class=\"meta\">
         <span class=\"pill\">数据日期: {latest_date}</span>
         <span class=\"pill\">样本数: {total}</span>
