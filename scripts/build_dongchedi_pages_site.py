@@ -1,5 +1,6 @@
 ﻿from __future__ import annotations
 
+import argparse
 import csv
 import html
 import json
@@ -32,6 +33,15 @@ def _latest_report_dir() -> Path:
     if not dirs:
         raise FileNotFoundError("No generated Dongchedi report found under reports/dongchedi_daily")
     return dirs[-1]
+
+
+def _report_dir_for_date(date_text: str) -> Path:
+  report_dir = REPORT_ROOT / date_text
+  if not report_dir.exists() or not report_dir.is_dir():
+    raise FileNotFoundError(f"Report date folder not found: {report_dir}")
+  if not (report_dir / "filtered.csv").exists():
+    raise FileNotFoundError(f"filtered.csv not found under report date: {report_dir}")
+  return report_dir
 
 
 def _copy_report_dir(report_dir: Path) -> None:
@@ -738,8 +748,15 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
 """
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Build the static Dongchedi Pages site.")
+    parser.add_argument("--date", default="", help="Publish a specific report date in YYYY-MM-DD. Defaults to latest available report.")
+    return parser.parse_args()
+
+
 def main() -> None:
-    latest_report = _latest_report_dir()
+    args = parse_args()
+    latest_report = _report_dir_for_date(args.date) if args.date else _latest_report_dir()
     latest_date = latest_report.name
     latest_csv = latest_report / "filtered.csv"
     latest_rows = _load_rows(latest_csv) if latest_csv.exists() else []
@@ -772,4 +789,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-  main()
+    main()

@@ -43,30 +43,79 @@ jobs:
           echo "RUN_DATE=$(date -u +%F)" >> "$GITHUB_ENV"
 
       - name: Generate daily report
+        if: github.event_name != 'push'
         continue-on-error: true
         run: |
           python scripts/run_dongchedi_daily.py --date "$RUN_DATE" --skip-confluence --no-backfill-missing --refresh-source --refresh-source-timeout 25 --refresh-source-min-successes 0
 
       - name: Fallback report generation (no refresh)
+        if: github.event_name != 'push'
         run: |
           if [ ! -f "reports/dongchedi_daily/$RUN_DATE/filtered.csv" ]; then
             echo "Primary run did not produce filtered.csv, running fallback without refresh-source"
             python scripts/run_dongchedi_daily.py --date "$RUN_DATE" --skip-confluence --no-backfill-missing
           fi
 
+      - name: Resolve publish date
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          import subprocess
+          from pathlib import Path
+
+          report_root = Path('reports/dongchedi_daily')
+          event_name = os.environ.get('GITHUB_EVENT_NAME', '')
+          publish_date = ''
+
+          if event_name == 'push':
+              before = os.environ.get('GITHUB_EVENT_BEFORE', '')
+              sha = os.environ.get('GITHUB_SHA', '')
+              if before and sha and before != '0000000000000000000000000000000000000000':
+                  proc = subprocess.run(
+                      ['git', 'diff', '--name-only', before, sha],
+                      capture_output=True,
+                      text=True,
+                      check=False,
+                  )
+                  changed_dates = []
+                  for line in proc.stdout.splitlines():
+                      match = re.match(r'reports/dongchedi_daily/(\d{4}-\d{2}-\d{2})/', line.strip())
+                      if match:
+                          candidate = report_root / match.group(1)
+                          if (candidate / 'filtered.csv').exists():
+                              changed_dates.append(match.group(1))
+                  if changed_dates:
+                      publish_date = sorted(set(changed_dates))[-1]
+
+          if not publish_date:
+              candidates = []
+              if report_root.exists():
+                  for path in report_root.iterdir():
+                      if path.is_dir() and re.fullmatch(r'\d{4}-\d{2}-\d{2}', path.name) and (path / 'filtered.csv').exists():
+                          candidates.append(path.name)
+              if not candidates:
+                  raise SystemExit('No publishable report date with filtered.csv found under reports/dongchedi_daily')
+              publish_date = sorted(candidates)[-1]
+
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as fh:
+              fh.write(f'PUBLISH_DATE={publish_date}\n')
+          print(f'Using PUBLISH_DATE={publish_date}')
+          PY
+
       - name: Build visualization
         run: |
-          python scripts/build_charging_visualizations.py --date "$RUN_DATE"
+          python scripts/build_charging_visualizations.py --date "$PUBLISH_DATE"
 
       - name: Verify dashboard sync with dataset
         run: |
-          test -f "reports/dongchedi_daily/$RUN_DATE/filtered.csv"
-          test -f "reports/dongchedi_daily/$RUN_DATE/charging_visualization_dashboard.html"
-          grep -q "${RUN_DATE}" "reports/dongchedi_daily/$RUN_DATE/charging_visualization_dashboard.html"
+          test -f "reports/dongchedi_daily/$PUBLISH_DATE/filtered.csv"
+          test -f "reports/dongchedi_daily/$PUBLISH_DATE/charging_visualization_dashboard.html"
+          grep -q "${PUBLISH_DATE}" "reports/dongchedi_daily/$PUBLISH_DATE/charging_visualization_dashboard.html"
 
       - name: Assemble Pages site
         run: |
-          python scripts/build_dongchedi_pages_site.py
+          python scripts/build_dongchedi_pages_site.py --date "$PUBLISH_DATE"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
