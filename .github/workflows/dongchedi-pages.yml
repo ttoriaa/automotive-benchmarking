@@ -48,17 +48,17 @@ jobs:
       - name: Resolve report date
         run: |
           RUN_DATE="$(python - <<'PY'
-from pathlib import Path
-root = Path('reports/dongchedi_daily')
-dates = []
-if root.exists():
-    for p in root.iterdir():
-        if p.is_dir() and (p / 'filtered.csv').exists():
-            dates.append(p.name)
-if not dates:
-    raise SystemExit('No report date with filtered.csv found')
-print(sorted(dates)[-1])
-PY
+          from pathlib import Path
+          root = Path('reports/dongchedi_daily')
+          dates = []
+          if root.exists():
+            for p in root.iterdir():
+              if p.is_dir() and (p / 'filtered.csv').exists():
+                dates.append(p.name)
+          if not dates:
+            raise SystemExit('No report date with filtered.csv found')
+          print(sorted(dates)[-1])
+          PY
           )"
           echo "RUN_DATE=$RUN_DATE" >> "$GITHUB_ENV"
           echo "Using RUN_DATE=$RUN_DATE"
