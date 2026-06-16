@@ -431,37 +431,37 @@ def build_visualization_html(
 <body>
   <div class="wrap">
     <div class="head">
-      <h1>懂车帝充电数据可视化 Dashboard</h1>
-      <p class="sub">日期: {report_date} | 含雷达、帕累托前沿、平台箱线、品牌热力、续航分布、价格-续航与价格-快充双Bubble图。</p>
+      <h1 id="pageTitle">懂车帝充电数据可视化 Dashboard</h1>
+      <p class="sub" id="pageSub">日期: {report_date} | 含雷达、帕累托前沿、平台箱线、品牌热力、续航分布、价格-续航与价格-快充双Bubble图。</p>
     </div>
     <div class="stats" id="stats"></div>
     <div class="grid">
       <section class="panel">
-        <div class="panel-title">1) 电池能量密度雷达分布</div>
+        <div class="panel-title" id="panelTitle1">1) 电池能量密度雷达分布</div>
         <div id="radarChart" class="chart"></div>
       </section>
       <section class="panel">
-        <div class="panel-title">2) 帕累托前沿图（价格↓ 续航↑ 快充时间↓）</div>
+        <div class="panel-title" id="panelTitle2">2) 帕累托前沿图（价格↓ 续航↑ 快充时间↓）</div>
         <div id="paretoChart" class="chart"></div>
       </section>
       <section class="panel">
-        <div class="panel-title">3) 平台电压 vs 快充时间 箱线图</div>
+        <div class="panel-title" id="panelTitle3">3) 平台电压 vs 快充时间 箱线图</div>
         <div id="platformBoxChart" class="chart"></div>
       </section>
       <section class="panel">
-        <div class="panel-title">4) 续航里程分布图（CLTC）</div>
+        <div class="panel-title" id="panelTitle4">4) 续航里程分布图（CLTC）</div>
         <div id="rangeDistChart" class="chart"></div>
       </section>
       <section class="panel panel-wide">
-        <div class="panel-title">5) 品牌充电能力热力图（速度得分/续航得分/高压占比）</div>
+        <div class="panel-title" id="panelTitle5">5) 品牌充电能力热力图（速度得分/续航得分/高压占比）</div>
         <div id="brandHeatmapChart" class="chart"></div>
       </section>
       <section class="panel">
-        <div class="panel-title">6) 价格 + 续航里程 Bubble 图</div>
+        <div class="panel-title" id="panelTitle6">6) 价格 + 续航里程 Bubble 图</div>
         <div id="priceRangeBubbleChart" class="chart"></div>
       </section>
       <section class="panel">
-        <div class="panel-title">7) 价格 + 快充时间 Bubble 图</div>
+        <div class="panel-title" id="panelTitle7">7) 价格 + 快充时间 Bubble 图</div>
         <div id="priceFastBubbleChart" class="chart"></div>
       </section>
     </div>
@@ -473,16 +473,49 @@ def build_visualization_html(
 
     const statsEl = document.getElementById("stats");
     const footEl = document.getElementById("foot");
+    const lang = localStorage.getItem("site_lang") === "en" ? "en" : "zh";
+    const L = (zh, en) => (lang === "en" ? en : zh);
+
+    function voltageLabel(raw) {{
+      if (lang !== "en") return raw;
+      if (raw === "未明确") return "Unknown";
+      return raw;
+    }}
+
+    function radarGroupLabel(raw) {{
+      if (lang !== "en") return raw;
+      const map = {{
+        "三元锂": "NCM",
+        "磷酸铁锂": "LFP",
+        "混合": "Mixed",
+        "其他/未明确": "Other/Unknown"
+      }};
+      return map[raw] || raw;
+    }}
+
+    document.title = L(`懂车帝充电数据可视化 ${{payload.reportDate}}`, `Dongchedi Charging Dashboard ${{payload.reportDate}}`);
+    document.getElementById("pageTitle").textContent = L("懂车帝充电数据可视化 Dashboard", "Dongchedi Charging Data Dashboard");
+    document.getElementById("pageSub").textContent = L(
+      `日期: ${{payload.reportDate}} | 含雷达、帕累托前沿、平台箱线、品牌热力、续航分布、价格-续航与价格-快充双Bubble图。`,
+      `Date: ${{payload.reportDate}} | Includes radar, Pareto frontier, platform boxplot, brand heatmap, range distribution, and dual bubble charts.`
+    );
+    document.getElementById("panelTitle1").textContent = L("1) 电池能量密度雷达分布", "1) Battery Energy Density Radar");
+    document.getElementById("panelTitle2").textContent = L("2) 帕累托前沿图（价格↓ 续航↑ 快充时间↓）", "2) Pareto Frontier (Price↓ Range↑ Fast Charge Time↓)");
+    document.getElementById("panelTitle3").textContent = L("3) 平台电压 vs 快充时间 箱线图", "3) Platform Voltage vs Fast Charge Time (Boxplot)");
+    document.getElementById("panelTitle4").textContent = L("4) 续航里程分布图（CLTC）", "4) Range Distribution (CLTC)");
+    document.getElementById("panelTitle5").textContent = L("5) 品牌充电能力热力图（速度得分/续航得分/高压占比）", "5) Brand Charging Capability Heatmap (Speed/Range/HV Share)");
+    document.getElementById("panelTitle6").textContent = L("6) 价格 + 续航里程 Bubble 图", "6) Price + Range Bubble");
+    document.getElementById("panelTitle7").textContent = L("7) 价格 + 快充时间 Bubble 图", "7) Price + Fast Charge Time Bubble");
 
     const statItems = [
-      `总车型: ${{payload.stats.totalModels}}`,
-      `能量密度可用: ${{payload.stats.densityAvailable}}`,
-      `能量密度缺失: ${{payload.stats.densityMissing}} (${{payload.stats.densityMissingRatio}}%)`,
-      `Bubble 点位: ${{payload.stats.bubblePoints}}`,
-      `热力图品牌数: ${{payload.stats.brandCount}}`,
-      `Bubble 排除词: ${{payload.stats.bubbleExcludeKeywords.join(" | ") || "无"}}`,
-      `雷达轴模式: ${{payload.stats.radarShowZeroBuckets ? "完整轴" : "紧凑轴"}}`,
-      `生成时间: ${{payload.generatedAt}}`
+      L(`总车型: ${{payload.stats.totalModels}}`, `Total models: ${{payload.stats.totalModels}}`),
+      L(`能量密度可用: ${{payload.stats.densityAvailable}}`, `Density available: ${{payload.stats.densityAvailable}}`),
+      L(`能量密度缺失: ${{payload.stats.densityMissing}} (${{payload.stats.densityMissingRatio}}%)`, `Density missing: ${{payload.stats.densityMissing}} (${{payload.stats.densityMissingRatio}}%)`),
+      L(`Bubble 点位: ${{payload.stats.bubblePoints}}`, `Bubble points: ${{payload.stats.bubblePoints}}`),
+      L(`热力图品牌数: ${{payload.stats.brandCount}}`, `Heatmap brands: ${{payload.stats.brandCount}}`),
+      L(`Bubble 排除词: ${{payload.stats.bubbleExcludeKeywords.join(" | ") || "无"}}`, `Bubble exclusions: ${{payload.stats.bubbleExcludeKeywords.join(" | ") || "None"}}`),
+      L(`雷达轴模式: ${{payload.stats.radarShowZeroBuckets ? "完整轴" : "紧凑轴"}}`, `Radar axis mode: ${{payload.stats.radarShowZeroBuckets ? "Full" : "Compact"}}`),
+      L(`生成时间: ${{payload.generatedAt}}`, `Generated at: ${{payload.generatedAt}}`)
     ];
     statItems.forEach(s => {{
       const node = document.createElement("span");
@@ -503,10 +536,10 @@ def build_visualization_html(
         type: "scatterpolar",
         r: values,
         theta,
-        name: series.name,
+        name: radarGroupLabel(series.name),
         opacity: 0.48,
         fill: "toself",
-        hovertemplate: `${{series.name}}<br>%{{theta}}: %{{r}} 台<extra></extra>`
+        hovertemplate: `${{radarGroupLabel(series.name)}}<br>%{{theta}}: %{{r}} ${{L("台", "models")}}<extra></extra>`
       }};
     }});
 
@@ -549,7 +582,7 @@ def build_visualization_html(
         const rangeTraces = Object.entries(groupedRange).map(([group, items]) => ({{
           type: "scatter",
           mode: "markers",
-          name: group,
+          name: voltageLabel(group),
           x: items.map(d => d.price),
           y: items.map(d => d.cltc),
           text: items.map(d => d.model),
@@ -562,11 +595,11 @@ def build_visualization_html(
           }},
           hovertemplate:
             "<b>%{{text}}</b>" +
-            "<br>品牌: %{{customdata[0]}}" +
-            "<br>价格: %{{x}} 万元" +
-            "<br>CLTC续航: %{{y}} km" +
-            "<br>快充时间: %{{customdata[2]}} 分钟" +
-            "<br>电池容量: %{{customdata[1]}} kWh" +
+            L("<br>品牌: %{{customdata[0]}}", "<br>Brand: %{{customdata[0]}}") +
+            L("<br>价格: %{{x}} 万元", "<br>Price: %{{x}} 10k CNY") +
+            L("<br>CLTC续航: %{{y}} km", "<br>CLTC Range: %{{y}} km") +
+            L("<br>快充时间: %{{customdata[2]}} 分钟", "<br>Fast charge: %{{customdata[2]}} min") +
+            L("<br>电池容量: %{{customdata[1]}} kWh", "<br>Battery: %{{customdata[1]}} kWh") +
             "<extra></extra>"
         }}));
 
@@ -574,8 +607,8 @@ def build_visualization_html(
           margin: {{ l: 62, r: 20, t: 10, b: 55 }},
           paper_bgcolor: "rgba(0,0,0,0)",
           plot_bgcolor: "rgba(255,255,255,0.55)",
-          xaxis: {{ title: "价格 (万元)", gridcolor: "rgba(20, 32, 43, 0.12)", zeroline: false }},
-          yaxis: {{ title: "CLTC续航 (km)", gridcolor: "rgba(20, 32, 43, 0.12)", zeroline: false }},
+          xaxis: {{ title: L("价格 (万元)", "Price (10k CNY)"), gridcolor: "rgba(20, 32, 43, 0.12)", zeroline: false }},
+          yaxis: {{ title: L("CLTC续航 (km)", "CLTC Range (km)"), gridcolor: "rgba(20, 32, 43, 0.12)", zeroline: false }},
           legend: {{ orientation: "h", y: 1.12, x: 0 }},
           font: {{ family: "Segoe UI, PingFang SC, Microsoft YaHei, sans-serif", color: "#14202b" }}
         }}, {{ responsive: true, displaylogo: false }});
@@ -589,7 +622,7 @@ def build_visualization_html(
         const fastBubbleTraces = Object.entries(fastGrouped).map(([group, items]) => ({{
           type: "scatter",
           mode: "markers",
-          name: group,
+          name: voltageLabel(group),
           x: items.map(d => d.price),
           y: items.map(d => d.fastChargeMin),
           text: items.map(d => d.model),
@@ -602,11 +635,11 @@ def build_visualization_html(
           }},
           hovertemplate:
             "<b>%{{text}}</b>" +
-            "<br>品牌: %{{customdata[0]}}" +
-            "<br>价格: %{{x}} 万元" +
-            "<br>快充时间: %{{y}} 分钟" +
-            "<br>CLTC续航: %{{customdata[1]}} km" +
-            "<br>电池容量: %{{customdata[2]}} kWh" +
+            L("<br>品牌: %{{customdata[0]}}", "<br>Brand: %{{customdata[0]}}") +
+            L("<br>价格: %{{x}} 万元", "<br>Price: %{{x}} 10k CNY") +
+            L("<br>快充时间: %{{y}} 分钟", "<br>Fast charge: %{{y}} min") +
+            L("<br>CLTC续航: %{{customdata[1]}} km", "<br>CLTC Range: %{{customdata[1]}} km") +
+            L("<br>电池容量: %{{customdata[2]}} kWh", "<br>Battery: %{{customdata[2]}} kWh") +
             "<extra></extra>"
         }}));
 
@@ -614,8 +647,8 @@ def build_visualization_html(
           margin: {{ l: 62, r: 20, t: 10, b: 55 }},
           paper_bgcolor: "rgba(0,0,0,0)",
           plot_bgcolor: "rgba(255,255,255,0.55)",
-          xaxis: {{ title: "价格 (万元)", gridcolor: "rgba(20, 32, 43, 0.12)", zeroline: false }},
-          yaxis: {{ title: "快充时间 (分钟，越小越好)", autorange: "reversed", gridcolor: "rgba(20, 32, 43, 0.12)", zeroline: false }},
+          xaxis: {{ title: L("价格 (万元)", "Price (10k CNY)"), gridcolor: "rgba(20, 32, 43, 0.12)", zeroline: false }},
+          yaxis: {{ title: L("快充时间 (分钟，越小越好)", "Fast Charge Time (min, lower is better)"), autorange: "reversed", gridcolor: "rgba(20, 32, 43, 0.12)", zeroline: false }},
           legend: {{ orientation: "h", y: 1.12, x: 0 }},
           font: {{ family: "Segoe UI, PingFang SC, Microsoft YaHei, sans-serif", color: "#14202b" }}
         }}, {{ responsive: true, displaylogo: false }});
@@ -626,13 +659,13 @@ def build_visualization_html(
           x: rangeValues,
           marker: {{ color: "#1f7a8c", opacity: 0.78, line: {{ width: 1, color: "rgba(20,32,43,0.3)" }} }},
           nbinsx: 18,
-          hovertemplate: "续航区间: %{{x}} km<br>车型数: %{{y}}<extra></extra>"
+          hovertemplate: L("续航区间: %{{x}} km<br>车型数: %{{y}}<extra></extra>", "Range bucket: %{{x}} km<br>Models: %{{y}}<extra></extra>")
         }}], {{
           margin: {{ l: 62, r: 20, t: 10, b: 55 }},
           paper_bgcolor: "rgba(0,0,0,0)",
           plot_bgcolor: "rgba(255,255,255,0.55)",
-          xaxis: {{ title: "CLTC续航 (km)", gridcolor: "rgba(20, 32, 43, 0.12)" }},
-          yaxis: {{ title: "车型数", gridcolor: "rgba(20, 32, 43, 0.12)" }},
+          xaxis: {{ title: L("CLTC续航 (km)", "CLTC Range (km)"), gridcolor: "rgba(20, 32, 43, 0.12)" }},
+          yaxis: {{ title: L("车型数", "Model Count"), gridcolor: "rgba(20, 32, 43, 0.12)" }},
           font: {{ family: "Segoe UI, PingFang SC, Microsoft YaHei, sans-serif", color: "#14202b" }}
         }}, {{ responsive: true, displaylogo: false }});
 
@@ -650,32 +683,42 @@ def build_visualization_html(
           {{
             type: "scatter",
             mode: "markers",
-            name: "其他车型",
+            name: L("其他车型", "Other Models"),
             x: others.map(d => d.price),
             y: others.map(d => d.cltc),
             text: others.map(d => d.model),
             customdata: others.map(d => [d.fastChargeMin, d.brand]),
             marker: {{ size: 8, color: "rgba(100,116,139,0.35)" }},
-            hovertemplate: "<b>%{{text}}</b><br>品牌: %{{customdata[1]}}<br>价格: %{{x}} 万元<br>CLTC: %{{y}} km<br>快充: %{{customdata[0]}} 分钟<extra></extra>"
+            hovertemplate: "<b>%{{text}}</b>" +
+              L("<br>品牌: %{{customdata[1]}}", "<br>Brand: %{{customdata[1]}}") +
+              L("<br>价格: %{{x}} 万元", "<br>Price: %{{x}} 10k CNY") +
+              "<br>CLTC: %{{y}} km" +
+              L("<br>快充: %{{customdata[0]}} 分钟", "<br>Fast charge: %{{customdata[0]}} min") +
+              "<extra></extra>"
           }},
           {{
             type: "scatter",
             mode: "markers+lines",
-            name: "帕累托前沿",
+            name: L("帕累托前沿", "Pareto Frontier"),
             x: frontierSorted.map(d => d.price),
             y: frontierSorted.map(d => d.cltc),
             text: frontierSorted.map(d => d.model),
             customdata: frontierSorted.map(d => [d.fastChargeMin, d.brand]),
             marker: {{ size: 11, color: "#c1121f", line: {{ width: 1, color: "#780000" }} }},
             line: {{ color: "#c1121f", width: 2 }},
-            hovertemplate: "<b>%{{text}}</b><br>品牌: %{{customdata[1]}}<br>价格: %{{x}} 万元<br>CLTC: %{{y}} km<br>快充: %{{customdata[0]}} 分钟<extra></extra>"
+            hovertemplate: "<b>%{{text}}</b>" +
+              L("<br>品牌: %{{customdata[1]}}", "<br>Brand: %{{customdata[1]}}") +
+              L("<br>价格: %{{x}} 万元", "<br>Price: %{{x}} 10k CNY") +
+              "<br>CLTC: %{{y}} km" +
+              L("<br>快充: %{{customdata[0]}} 分钟", "<br>Fast charge: %{{customdata[0]}} min") +
+              "<extra></extra>"
           }}
         ], {{
           margin: {{ l: 62, r: 20, t: 10, b: 55 }},
           paper_bgcolor: "rgba(0,0,0,0)",
           plot_bgcolor: "rgba(255,255,255,0.55)",
-          xaxis: {{ title: "价格 (万元，越左越优)", gridcolor: "rgba(20, 32, 43, 0.12)" }},
-          yaxis: {{ title: "CLTC续航 (km，越高越优)", gridcolor: "rgba(20, 32, 43, 0.12)" }},
+          xaxis: {{ title: L("价格 (万元，越左越优)", "Price (10k CNY, lower is better)"), gridcolor: "rgba(20, 32, 43, 0.12)" }},
+          yaxis: {{ title: L("CLTC续航 (km，越高越优)", "CLTC Range (km, higher is better)"), gridcolor: "rgba(20, 32, 43, 0.12)" }},
           legend: {{ orientation: "h", y: 1.12, x: 0 }},
           font: {{ family: "Segoe UI, PingFang SC, Microsoft YaHei, sans-serif", color: "#14202b" }}
         }}, {{ responsive: true, displaylogo: false }});
@@ -687,12 +730,12 @@ def build_visualization_html(
             const items = fastRows.filter(r => r.voltageGroup === v);
             return {{
               type: "box",
-              name: v,
+              name: voltageLabel(v),
               y: items.map(r => r.fastChargeMin),
               boxmean: "sd",
               marker: {{ color: colorByVoltage[v] || "#6d597a" }},
               line: {{ width: 1.2 }},
-              hovertemplate: `${{v}}<br>快充时间: %{{y}} 分钟<extra></extra>`
+              hovertemplate: `${{voltageLabel(v)}}<br>${{L("快充时间", "Fast charge")}}: %{{y}} ${{L("分钟", "min")}}<extra></extra>`
             }};
           }});
 
@@ -700,13 +743,13 @@ def build_visualization_html(
           margin: {{ l: 62, r: 20, t: 10, b: 55 }},
           paper_bgcolor: "rgba(0,0,0,0)",
           plot_bgcolor: "rgba(255,255,255,0.55)",
-          xaxis: {{ title: "平台电压分组" }},
-          yaxis: {{ title: "快充时间 (分钟，越小越好)", autorange: "reversed", gridcolor: "rgba(20, 32, 43, 0.12)" }},
+          xaxis: {{ title: L("平台电压分组", "Voltage Platform Group") }},
+          yaxis: {{ title: L("快充时间 (分钟，越小越好)", "Fast Charge Time (min, lower is better)"), autorange: "reversed", gridcolor: "rgba(20, 32, 43, 0.12)" }},
           font: {{ family: "Segoe UI, PingFang SC, Microsoft YaHei, sans-serif", color: "#14202b" }}
         }}, {{ responsive: true, displaylogo: false }});
 
         const brandRows = payload.brandHeatmapRows;
-        const heatmapX = ["快充速度得分", "续航得分", "高压占比得分"];
+        const heatmapX = lang === "en" ? ["Fast Charge Score", "Range Score", "HV Share Score"] : ["快充速度得分", "续航得分", "高压占比得分"];
         const heatmapY = brandRows.map(r => `${{r.brand}} (${{r.count}})`);
         const heatmapZ = brandRows.map(r => [r.fastScore, r.cltcScore, r.hvScore]);
         const heatmapText = brandRows.map(r => [
@@ -725,7 +768,7 @@ def build_visualization_html(
           colorscale: "YlGnBu",
           zmin: 0,
           zmax: 1,
-          hovertemplate: "品牌: %{{y}}<br>指标: %{{x}}<br>原始值: %{{text}}<br>得分: %{{z:.2f}}<extra></extra>"
+          hovertemplate: L("品牌: %{{y}}<br>指标: %{{x}}<br>原始值: %{{text}}<br>得分: %{{z:.2f}}<extra></extra>", "Brand: %{{y}}<br>Metric: %{{x}}<br>Raw value: %{{text}}<br>Score: %{{z:.2f}}<extra></extra>")
         }}], {{
           margin: {{ l: 110, r: 20, t: 10, b: 40 }},
           paper_bgcolor: "rgba(0,0,0,0)",
@@ -736,9 +779,10 @@ def build_visualization_html(
         }}, {{ responsive: true, displaylogo: false }});
 
     footEl.innerHTML =
-      `数据说明: Radar 仅统计有数值的电池能量密度。` +
-      ` <span class="warn">当前能量密度缺失率 ${{payload.stats.densityMissingRatio}}%</span>，分布解读需谨慎。` +
-      ` 帕累托前沿以价格、续航、快充时间联合判定；Bubble 排除词对所有 Bubble 与帕累托图生效。`;
+      L(
+        `数据说明: Radar 仅统计有数值的电池能量密度。 <span class="warn">当前能量密度缺失率 ${{payload.stats.densityMissingRatio}}%</span>，分布解读需谨慎。 帕累托前沿以价格、续航、快充时间联合判定；Bubble 排除词对所有 Bubble 与帕累托图生效。`,
+        `Notes: Radar includes only rows with numeric battery energy density. <span class="warn">Current density missing rate: ${{payload.stats.densityMissingRatio}}%</span>. Interpret distribution with caution. Pareto frontier is computed jointly by price, range, and fast-charge time; bubble exclusions apply to all bubble and Pareto charts.`
+      );
   </script>
 </body>
 </html>

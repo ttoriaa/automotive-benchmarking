@@ -400,6 +400,14 @@ def _language_script(page: str, total_rows: int = 0) -> str:
             "ins_fast_title": "最快快充车型（Top 5）",
             "ins_slow_title": "最慢快充车型（Bottom 5）",
             "ins_takeaways_title": "Takeaways",
+            "ins_line_1": "样本 {total} 款车型中，800V及以上占比 {highRatio}% ，说明高压平台在当前样本中已形成明显渗透。",
+            "ins_line_2": "快充时间均值 {avgFast} 分钟，中位数 {medianFast} 分钟。",
+            "ins_line_3": "CLTC 续航均值 {avgCltc} km，可与 Dashboard 的分布图交叉验证。",
+            "ins_rank_brand_label": "品牌:",
+            "ins_rank_fast_label": "快充时间:",
+            "ins_rank_hv_label": "高压平台:",
+            "ins_rank_minutes": "分钟",
+            "ins_rank_unknown": "未明确",
             "ins_t1_title": "1. 高压平台渗透",
             "ins_t1_sub": "高压平台占比可用于判断高功率快充基础能力，适合持续按周追踪其变化。",
             "ins_t2_title": "2. 充电效率分化",
@@ -457,6 +465,14 @@ def _language_script(page: str, total_rows: int = 0) -> str:
             "ins_fast_title": "Fastest Charging Models (Top 5)",
             "ins_slow_title": "Slowest Charging Models (Bottom 5)",
             "ins_takeaways_title": "Takeaways",
+            "ins_line_1": "Across {total} models, the 800V+ share is {highRatio}%, indicating clear high-voltage platform penetration in this sample.",
+            "ins_line_2": "Average fast-charging time is {avgFast} min, with a median of {medianFast} min.",
+            "ins_line_3": "Average CLTC range is {avgCltc} km, which can be cross-validated with the dashboard distribution.",
+            "ins_rank_brand_label": "Brand:",
+            "ins_rank_fast_label": "Fast charge:",
+            "ins_rank_hv_label": "HV platform:",
+            "ins_rank_minutes": "min",
+            "ins_rank_unknown": "Unknown",
             "ins_t1_title": "1. High-Voltage Penetration",
             "ins_t1_sub": "The share of high-voltage platforms is a practical proxy for high-power charging readiness.",
             "ins_t2_title": "2. Charging Efficiency Gap",
@@ -501,6 +517,33 @@ def _language_script(page: str, total_rows: int = 0) -> str:
         stat.textContent = format(t(lang, key), {{ count: filteredRows }});
       }}
 
+      function applyInsightTemplates(lang) {{
+        if (page !== 'insights') {{
+          return;
+        }}
+        document.querySelectorAll('[data-i18n-template]').forEach(function (el) {{
+          const key = el.getAttribute('data-i18n-template');
+          el.textContent = format(t(lang, key), el.dataset || {{}});
+        }});
+      }}
+
+      function syncDashboardFrame(lang) {{
+        if (page !== 'dash') {{
+          return;
+        }}
+        const frame = document.querySelector('iframe.frame');
+        if (!frame) {{
+          return;
+        }}
+        try {{
+          const url = new URL(frame.getAttribute('src') || '', window.location.href);
+          url.searchParams.set('lang', lang);
+          frame.setAttribute('src', url.toString());
+        }} catch (_err) {{
+          // Ignore malformed src values.
+        }}
+      }}
+
       function setLang(lang) {{
         const zhBtn = document.getElementById('langZhBtn');
         const enBtn = document.getElementById('langEnBtn');
@@ -528,7 +571,10 @@ def _language_script(page: str, total_rows: int = 0) -> str:
         }});
 
         applyDataStat(lang);
+        applyInsightTemplates(lang);
         localStorage.setItem('site_lang', lang);
+        syncDashboardFrame(lang);
+        window.dispatchEvent(new CustomEvent('site-lang-changed', {{ detail: {{ lang }} }}));
       }}
 
       window.updateDataStatText = function (visibleRows) {{
@@ -548,6 +594,12 @@ def _language_script(page: str, total_rows: int = 0) -> str:
       if (enBtn) {{
         enBtn.addEventListener('click', function () {{ setLang('en'); }});
       }}
+
+      window.addEventListener('storage', function (e) {{
+        if (e.key === 'site_lang') {{
+          setLang(currentLang());
+        }}
+      }});
 
       setLang(currentLang());
     }})();
@@ -833,20 +885,21 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
     slowest = by_fast[-5:]
 
     def _render_rank_row(items: list[tuple[float, dict[str, str]]], tone: str) -> str:
-        if not items:
-            return "<p class=\"sub\">暂无可用数据</p>"
-        cards = []
-        for val, row in items:
-            voltage = _num(row.get("高压平台电压(V)", ""))
-            cards.append(
-                f"<article class=\"rank-card {tone}\">"
-                f"<h3>{html.escape(row.get('车型', '未命名车型'))}</h3>"
-                f"<p class=\"sub\">品牌: {html.escape(row.get('品牌', '未明确'))}</p>"
-                f"<p class=\"sub\">快充时间: {val:.1f} 分钟</p>"
-                f"<p class=\"sub\">高压平台: {f'{voltage:.0f}V' if voltage is not None else '未明确'}</p>"
-                "</article>"
-            )
-        return "<div class=\"rank-row\">" + "".join(cards) + "</div>"
+      if not items:
+        return "<p class=\"sub\">暂无可用数据</p>"
+      cards = []
+      for val, row in items:
+        voltage = _num(row.get("高压平台电压(V)", ""))
+        hv_value = f"{voltage:.0f}V" if voltage is not None else '<span data-i18n="ins_rank_unknown">未明确</span>'
+        cards.append(
+          f"<article class=\"rank-card {tone}\">"
+          f"<h3>{html.escape(row.get('车型', '未命名车型'))}</h3>"
+          f"<p class=\"sub\"><span data-i18n=\"ins_rank_brand_label\">品牌:</span> {html.escape(row.get('品牌', '未明确'))}</p>"
+          f"<p class=\"sub\"><span data-i18n=\"ins_rank_fast_label\">快充时间:</span> {val:.1f} <span data-i18n=\"ins_rank_minutes\">分钟</span></p>"
+          f"<p class=\"sub\"><span data-i18n=\"ins_rank_hv_label\">高压平台:</span> {hv_value}</p>"
+          "</article>"
+        )
+      return "<div class=\"rank-row\">" + "".join(cards) + "</div>"
 
     brand_bucket: dict[str, dict[str, float | int]] = {}
     for r in rows:
@@ -872,48 +925,62 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
 
     bubble_payload = json.dumps(bubble_rows, ensure_ascii=False)
 
-    insight_lines = [
-        f"样本 {total} 款车型中，800V及以上占比 {high_ratio:.1f}% ，说明高压平台在当前样本中已形成明显渗透。",
-        f"快充时间均值 {f'{avg_fast:.1f}' if avg_fast is not None else '未明确'} 分钟，中位数 {f'{median_fast:.1f}' if median_fast is not None else '未明确'} 分钟。",
-        f"CLTC 续航均值 {f'{avg_cltc:.0f}' if avg_cltc is not None else '未明确'} km，可与 Dashboard 的分布图交叉验证。",
-    ]
+    avg_fast_text = f"{avg_fast:.1f}" if avg_fast is not None else "未明确"
+    median_fast_text = f"{median_fast:.1f}" if median_fast is not None else "未明确"
+    avg_cltc_text = f"{avg_cltc:.0f}" if avg_cltc is not None else "未明确"
 
     bubble_script = """
   <script>
     (function () {
       const rows = __BUBBLE_PAYLOAD__;
-      if (!rows || rows.length === 0) {
-        document.getElementById('brandBubble').innerHTML = '<p class="sub" style="padding:12px">暂无品牌分布数据</p>';
-        return;
-      }
-      const x = rows.map(r => r.brand);
-      const y = rows.map(r => r.fastAvg === null ? 0 : r.fastAvg);
-      const size = rows.map(r => Math.max(14, Math.sqrt(r.count) * 9));
-      const text = rows.map(r => `${r.brand}<br>车型数: ${r.count}<br>平均快充: ${r.fastAvg ?? '未明确'} 分钟`);
+      function renderBubble() {
+        const chart = document.getElementById('brandBubble');
+        const lang = localStorage.getItem('site_lang') === 'en' ? 'en' : 'zh';
+        const label = function (zh, en) { return lang === 'en' ? en : zh; };
 
-      Plotly.newPlot('brandBubble', [{
-        type: 'scatter',
-        mode: 'markers',
-        x,
-        y,
-        text,
-        hovertemplate: '%{text}<extra></extra>',
-        marker: {
-          size,
-          color: y,
-          colorscale: 'YlOrRd',
-          showscale: true,
-          opacity: 0.78,
-          line: { width: 1, color: 'rgba(20,32,43,0.35)' }
+        if (!rows || rows.length === 0) {
+          chart.innerHTML = '<p class="sub" style="padding:12px">' + label('暂无品牌分布数据', 'No brand distribution data available') + '</p>';
+          return;
         }
-      }], {
-        margin: { l: 60, r: 20, t: 10, b: 90 },
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        plot_bgcolor: 'rgba(255,255,255,0.35)',
-        xaxis: { title: '品牌', tickangle: -25 },
-        yaxis: { title: '平均快充时间(分钟)' },
-        font: { family: 'Segoe UI, PingFang SC, Microsoft YaHei, sans-serif', color: '#14202b' }
-      }, { responsive: true, displaylogo: false });
+
+        const x = rows.map(r => r.brand);
+        const y = rows.map(r => r.fastAvg === null ? 0 : r.fastAvg);
+        const size = rows.map(r => Math.max(14, Math.sqrt(r.count) * 9));
+        const text = rows.map(r => {
+          const avgFast = r.fastAvg === null ? label('未明确', 'N/A') : r.fastAvg;
+          return lang === 'en'
+            ? `${r.brand}<br>Models: ${r.count}<br>Avg Fast Charge: ${avgFast} min`
+            : `${r.brand}<br>车型数: ${r.count}<br>平均快充: ${avgFast} 分钟`;
+        });
+
+        Plotly.newPlot('brandBubble', [{
+          type: 'scatter',
+          mode: 'markers',
+          x,
+          y,
+          text,
+          hovertemplate: '%{text}<extra></extra>',
+          marker: {
+            size,
+            color: y,
+            colorscale: 'YlOrRd',
+            showscale: true,
+            opacity: 0.78,
+            line: { width: 1, color: 'rgba(20,32,43,0.35)' }
+          }
+        }], {
+          margin: { l: 60, r: 20, t: 10, b: 90 },
+          paper_bgcolor: 'rgba(0,0,0,0)',
+          plot_bgcolor: 'rgba(255,255,255,0.35)',
+          xaxis: { title: label('品牌', 'Brand'), tickangle: -25 },
+          yaxis: { title: label('平均快充时间(分钟)', 'Avg Fast Charge Time (min)') },
+          font: { family: 'Segoe UI, PingFang SC, Microsoft YaHei, sans-serif', color: '#14202b' }
+        }, { responsive: true, displaylogo: false });
+
+        }
+
+        renderBubble();
+        window.addEventListener('site-lang-changed', renderBubble);
     })();
   </script>
 """.replace("__BUBBLE_PAYLOAD__", bubble_payload)
@@ -970,7 +1037,9 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
 
       <h2 style=\"margin-top:16px\" data-i18n=\"ins_sync_title\">同步结论（来自数据表与 Dashboard 同批数据）</h2>
       <div class=\"grid\">
-        {''.join(f'<article class="card"><p class="sub">{html.escape(line)}</p></article>' for line in insight_lines)}
+        <article class=\"card\"><p class=\"sub\" data-i18n-template=\"ins_line_1\" data-total=\"{total}\" data-high-ratio=\"{high_ratio:.1f}\">样本 {total} 款车型中，800V及以上占比 {high_ratio:.1f}% ，说明高压平台在当前样本中已形成明显渗透。</p></article>
+        <article class=\"card\"><p class=\"sub\" data-i18n-template=\"ins_line_2\" data-avg-fast=\"{avg_fast_text}\" data-median-fast=\"{median_fast_text}\">快充时间均值 {avg_fast_text} 分钟，中位数 {median_fast_text} 分钟。</p></article>
+        <article class=\"card\"><p class=\"sub\" data-i18n-template=\"ins_line_3\" data-avg-cltc=\"{avg_cltc_text}\">CLTC 续航均值 {avg_cltc_text} km，可与 Dashboard 的分布图交叉验证。</p></article>
       </div>
 
       <h2 style=\"margin-top:16px\" data-i18n=\"ins_bubble_title\">品牌分布 Bubble</h2>
