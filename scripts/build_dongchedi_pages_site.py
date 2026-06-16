@@ -395,6 +395,8 @@ def _language_script(page: str, total_rows: int = 0) -> str:
             "ins_meta_samples": "样本数:",
             "ins_meta_hv": "800V及以上占比:",
             "ins_meta_avg_fast": "平均快充时间:",
+            "ins_meta_avg_fast_na": "未明确",
+            "ins_meta_avg_fast_unit": "分钟",
             "ins_sync_title": "同步结论（来自数据表与 Dashboard 同批数据）",
             "ins_bubble_title": "品牌分布 Bubble",
             "ins_fast_title": "最快快充车型（Top 5）",
@@ -460,6 +462,8 @@ def _language_script(page: str, total_rows: int = 0) -> str:
             "ins_meta_samples": "Samples:",
             "ins_meta_hv": "800V+ share:",
             "ins_meta_avg_fast": "Avg fast charge time:",
+            "ins_meta_avg_fast_na": "N/A",
+            "ins_meta_avg_fast_unit": "min",
             "ins_sync_title": "Aligned Findings (same data batch)",
             "ins_bubble_title": "Brand Bubble Distribution",
             "ins_fast_title": "Fastest Charging Models (Top 5)",
@@ -525,6 +529,15 @@ def _language_script(page: str, total_rows: int = 0) -> str:
           const key = el.getAttribute('data-i18n-template');
           el.textContent = format(t(lang, key), el.dataset || {{}});
         }});
+
+        const avgFastEl = document.getElementById('insMetaAvgFastValue');
+        if (avgFastEl) {{
+          const val = avgFastEl.dataset.value || '';
+          const hasNumber = /^\\d+(\\.\\d+)?$/.test(val);
+          avgFastEl.textContent = hasNumber
+            ? `${{val}} ${{t(lang, 'ins_meta_avg_fast_unit')}}`
+            : t(lang, 'ins_meta_avg_fast_na');
+        }}
       }}
 
       function syncDashboardFrame(lang) {{
@@ -1032,7 +1045,7 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
         <span class=\"pill\"><span data-i18n=\"ins_meta_date\">数据日期:</span> {latest_date}</span>
         <span class=\"pill\"><span data-i18n=\"ins_meta_samples\">样本数:</span> {total}</span>
         <span class=\"pill\"><span data-i18n=\"ins_meta_hv\">800V及以上占比:</span> {high_ratio:.1f}%</span>
-        <span class=\"pill\"><span data-i18n=\"ins_meta_avg_fast\">平均快充时间:</span> {f'{avg_fast:.1f} 分钟' if avg_fast is not None else '未明确'}</span>
+        <span class=\"pill\"><span data-i18n=\"ins_meta_avg_fast\">平均快充时间:</span> <span id=\"insMetaAvgFastValue\" data-value=\"{f'{avg_fast:.1f}' if avg_fast is not None else ''}\">{f'{avg_fast:.1f} 分钟' if avg_fast is not None else '未明确'}</span></span>
       </div>
 
       <h2 style=\"margin-top:16px\" data-i18n=\"ins_sync_title\">同步结论（来自数据表与 Dashboard 同批数据）</h2>
