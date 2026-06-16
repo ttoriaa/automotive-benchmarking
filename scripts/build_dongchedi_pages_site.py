@@ -159,6 +159,7 @@ def _base_style() -> str:
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      align-items: center;
       margin-bottom: 14px;
       background: var(--card);
       border: 1px solid var(--line);
@@ -177,6 +178,29 @@ def _base_style() -> str:
       font-size: 14px;
     }
     .nav a.active {
+      color: #fff;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+    .nav-spacer {
+      flex: 1;
+    }
+    .lang-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lang-btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .lang-btn.active {
       color: #fff;
       border-color: transparent;
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
@@ -303,16 +327,232 @@ def _base_style() -> str:
 
 def _nav(active: str) -> str:
     tabs = [
-        ("index.html", "首页简介", "intro"),
-        ("data.html", "数据表", "data"),
-        ("dashboard.html", "可视化", "dash"),
-        ("insights.html", "趋势总结", "insights"),
+        ("index.html", "首页简介", "intro", "nav_intro"),
+        ("data.html", "数据表", "data", "nav_data"),
+        ("dashboard.html", "可视化", "dash", "nav_dash"),
+        ("insights.html", "趋势总结", "insights", "nav_insights"),
     ]
     links: list[str] = []
-    for href, label, key in tabs:
+    for href, label, key, i18n_key in tabs:
         cls = "active" if key == active else ""
-        links.append(f"<a class=\"{cls}\" href=\"{href}\">{html.escape(label)}</a>")
-    return f"<nav class=\"nav\">{''.join(links)}</nav>"
+        links.append(f"<a class=\"{cls}\" href=\"{href}\" data-i18n=\"{i18n_key}\">{html.escape(label)}</a>")
+    return (
+        f"<nav class=\"nav\">"
+        f"{''.join(links)}"
+        f"<span class=\"nav-spacer\"></span>"
+        f"<div class=\"lang-switch\">"
+        f"<button id=\"langZhBtn\" class=\"lang-btn\" type=\"button\" data-lang=\"zh\">中文</button>"
+        f"<button id=\"langEnBtn\" class=\"lang-btn\" type=\"button\" data-lang=\"en\">English</button>"
+        f"</div>"
+        f"</nav>"
+    )
+
+
+def _language_script(page: str, total_rows: int = 0) -> str:
+    i18n = {
+        "zh": {
+            "nav_intro": "首页简介",
+            "nav_data": "数据表",
+            "nav_dash": "可视化",
+            "nav_insights": "趋势总结",
+            "intro_title": "EV Charging Benchmarking",
+            "intro_sub": "这是一个电动车充电与电池性能 benchmarking 网站，用于持续对比不同车型在快充速度、续航、电池指标上的表现，支持定期更新与趋势追踪。",
+            "intro_meta_latest": "最新数据日期:",
+            "intro_meta_source": "数据源: 懂车帝参数页 + 日报处理结果",
+            "intro_meta_purpose": "Purpose: 性能对比、选型参考、趋势监控",
+            "intro_card_source_title": "数据源",
+            "intro_card_source_sub": "来自懂车帝车型参数页抓取与日报筛选（纯电、价格阈值）。",
+            "intro_card_bench_title": "Benchmark 维度",
+            "intro_card_bench_sub": "快充时间、充电窗口、高压平台、电池容量、电池能量密度、CLTC续航等。",
+            "intro_card_usage_title": "使用方式",
+            "intro_card_usage_sub": "先看数据表，再看可视化，最后在趋势页查看关键 takeaway。",
+            "intro_foot": "注: 本站采用最新一期数据覆盖发布（适合按月更新），页面 2/3/4 均基于同一期数据构建。",
+            "data_title": "Charging & Battery 参数数据表",
+            "data_sub": "此页展示最新抓取与处理后的 benchmarking 表格，供横向对比和二次分析。该页会随日报定期更新。",
+            "data_meta_date": "数据日期:",
+            "data_meta_rows": "记录数:",
+            "data_meta_file": "数据文件:",
+            "data_filter_title": "筛选",
+            "data_filter_brand": "品牌",
+            "data_filter_power": "动力形式",
+            "data_filter_hv": "高压平台",
+            "data_filter_battery": "电池类型",
+            "data_filter_cell_brand": "电芯品牌",
+            "data_filter_keyword": "模糊搜索",
+            "data_filter_placeholder": "车型/品牌/电池关键字",
+            "data_filter_all": "全部",
+            "data_filter_unknown": "未知",
+            "data_filter_clear": "清空筛选",
+            "data_stat_all": "显示全部 {count} 条记录",
+            "data_stat_filtered": "筛选后显示 {count} 条记录",
+            "dash_title": "可视化 Dashboard",
+            "dash_sub": "该可视化由数据表页同源数据自动生成，用于快速观察车型分布、充电效率与关键指标差异。",
+            "dash_meta_date": "数据日期:",
+            "dash_meta_source": "来源: data.html 同批数据",
+            "ins_title": "趋势总结与 Takeaways",
+            "ins_sub": "基于数据表页与 Dashboard 同批数据，提炼关键趋势与可执行结论，帮助你快速做车型性能 benchmarking 决策。",
+            "ins_meta_date": "数据日期:",
+            "ins_meta_samples": "样本数:",
+            "ins_meta_hv": "800V及以上占比:",
+            "ins_meta_avg_fast": "平均快充时间:",
+            "ins_sync_title": "同步结论（来自数据表与 Dashboard 同批数据）",
+            "ins_bubble_title": "品牌分布 Bubble",
+            "ins_fast_title": "最快快充车型（Top 5）",
+            "ins_slow_title": "最慢快充车型（Bottom 5）",
+            "ins_takeaways_title": "Takeaways",
+            "ins_t1_title": "1. 高压平台渗透",
+            "ins_t1_sub": "高压平台占比可用于判断高功率快充基础能力，适合持续按周追踪其变化。",
+            "ins_t2_title": "2. 充电效率分化",
+            "ins_t2_sub": "同价位车型快充时间差异明显，建议结合充电窗口与电池容量做综合比较。",
+            "ins_t3_title": "3. 品牌策略差异",
+            "ins_t3_sub": "品牌在电池容量和快充时间上的取舍不同，可用于产品定位和竞品研究。",
+        },
+        "en": {
+            "nav_intro": "Overview",
+            "nav_data": "Data Table",
+            "nav_dash": "Visualization",
+            "nav_insights": "Insights",
+            "intro_title": "EV Charging Benchmarking",
+            "intro_sub": "This site benchmarks EV charging and battery performance, with continuous comparison across models on fast-charging speed, range, and battery metrics.",
+            "intro_meta_latest": "Latest data date:",
+            "intro_meta_source": "Source: Dongchedi spec pages + daily pipeline outputs",
+            "intro_meta_purpose": "Purpose: performance comparison, model selection, trend tracking",
+            "intro_card_source_title": "Data Source",
+            "intro_card_source_sub": "Built from Dongchedi model spec scraping and daily report filtering (BEV + price thresholds).",
+            "intro_card_bench_title": "Benchmark Dimensions",
+            "intro_card_bench_sub": "Fast-charging time, charging window, high-voltage platform, battery capacity, energy density, CLTC range, and more.",
+            "intro_card_usage_title": "How To Use",
+            "intro_card_usage_sub": "Start from the data table, explore charts, then review key takeaways in the insights page.",
+            "intro_foot": "Note: The site publishes the latest snapshot only; pages 2/3/4 are generated from the same report batch.",
+            "data_title": "Charging & Battery Data Table",
+            "data_sub": "This page shows the latest processed benchmarking table for side-by-side comparison and downstream analysis.",
+            "data_meta_date": "Data date:",
+            "data_meta_rows": "Rows:",
+            "data_meta_file": "Data file:",
+            "data_filter_title": "Filters",
+            "data_filter_brand": "Brand",
+            "data_filter_power": "Power Type",
+            "data_filter_hv": "HV Platform",
+            "data_filter_battery": "Battery Type",
+            "data_filter_cell_brand": "Cell Brand",
+            "data_filter_keyword": "Keyword Search",
+            "data_filter_placeholder": "Model/brand/battery keyword",
+            "data_filter_all": "All",
+            "data_filter_unknown": "Unknown",
+            "data_filter_clear": "Clear Filters",
+            "data_stat_all": "Showing all {count} rows",
+            "data_stat_filtered": "Showing {count} filtered rows",
+            "dash_title": "Visualization Dashboard",
+            "dash_sub": "This dashboard is generated from the same dataset as the data table, for quick comparison of distribution and charging metrics.",
+            "dash_meta_date": "Data date:",
+            "dash_meta_source": "Source: same batch as data.html",
+            "ins_title": "Insights & Takeaways",
+            "ins_sub": "Based on the same data batch as the table and dashboard, this page highlights actionable trends for EV benchmarking decisions.",
+            "ins_meta_date": "Data date:",
+            "ins_meta_samples": "Samples:",
+            "ins_meta_hv": "800V+ share:",
+            "ins_meta_avg_fast": "Avg fast charge time:",
+            "ins_sync_title": "Aligned Findings (same data batch)",
+            "ins_bubble_title": "Brand Bubble Distribution",
+            "ins_fast_title": "Fastest Charging Models (Top 5)",
+            "ins_slow_title": "Slowest Charging Models (Bottom 5)",
+            "ins_takeaways_title": "Takeaways",
+            "ins_t1_title": "1. High-Voltage Penetration",
+            "ins_t1_sub": "The share of high-voltage platforms is a practical proxy for high-power charging readiness.",
+            "ins_t2_title": "2. Charging Efficiency Gap",
+            "ins_t2_sub": "Large fast-charging differences exist even in similar price ranges; compare with charging window and battery capacity.",
+            "ins_t3_title": "3. Brand Strategy Differences",
+            "ins_t3_sub": "Brands show different trade-offs between battery capacity and charging speed, useful for positioning and competitor analysis.",
+        },
+    }
+    payload = json.dumps(i18n, ensure_ascii=False)
+    return f"""
+  <script>
+    (function () {{
+      const page = {json.dumps(page)};
+      const totalRows = {int(total_rows)};
+      const I18N = {payload};
+
+      function currentLang() {{
+        const saved = localStorage.getItem('site_lang');
+        if (saved === 'zh' || saved === 'en') {{
+          return saved;
+        }}
+        return document.documentElement.lang && document.documentElement.lang.toLowerCase().startsWith('en') ? 'en' : 'zh';
+      }}
+
+      function t(lang, key) {{
+        return (I18N[lang] && I18N[lang][key]) || (I18N.zh && I18N.zh[key]) || '';
+      }}
+
+      function format(template, data) {{
+        return String(template || '').replace(/\\{{(\\w+)\\}}/g, function (_, k) {{
+          return data[k] !== undefined ? String(data[k]) : '';
+        }});
+      }}
+
+      function applyDataStat(lang) {{
+        const stat = document.getElementById('filterStat');
+        if (!stat || page !== 'data') {{
+          return;
+        }}
+        const filteredRows = Number(stat.dataset.filteredRows || totalRows);
+        const key = filteredRows === totalRows ? 'data_stat_all' : 'data_stat_filtered';
+        stat.textContent = format(t(lang, key), {{ count: filteredRows }});
+      }}
+
+      function setLang(lang) {{
+        const zhBtn = document.getElementById('langZhBtn');
+        const enBtn = document.getElementById('langEnBtn');
+        if (zhBtn) {{
+          zhBtn.classList.toggle('active', lang === 'zh');
+        }}
+        if (enBtn) {{
+          enBtn.classList.toggle('active', lang === 'en');
+        }}
+
+        document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        document.querySelectorAll('[data-i18n]').forEach(function (el) {{
+          const key = el.getAttribute('data-i18n');
+          const val = t(lang, key);
+          if (val) {{
+            el.textContent = val;
+          }}
+        }});
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {{
+          const key = el.getAttribute('data-i18n-placeholder');
+          const val = t(lang, key);
+          if (val) {{
+            el.setAttribute('placeholder', val);
+          }}
+        }});
+
+        applyDataStat(lang);
+        localStorage.setItem('site_lang', lang);
+      }}
+
+      window.updateDataStatText = function (visibleRows) {{
+        const stat = document.getElementById('filterStat');
+        if (!stat) {{
+          return;
+        }}
+        stat.dataset.filteredRows = String(visibleRows);
+        applyDataStat(currentLang());
+      }};
+
+      const zhBtn = document.getElementById('langZhBtn');
+      const enBtn = document.getElementById('langEnBtn');
+      if (zhBtn) {{
+        zhBtn.addEventListener('click', function () {{ setLang('zh'); }});
+      }}
+      if (enBtn) {{
+        enBtn.addEventListener('click', function () {{ setLang('en'); }});
+      }}
+
+      setLang(currentLang());
+    }})();
+  </script>
+"""
 
 
 def _build_intro_html(latest_date: str) -> str:
@@ -328,21 +568,22 @@ def _build_intro_html(latest_date: str) -> str:
   <div class=\"shell\">
     {_nav('intro')}
     <section class=\"panel\">
-      <h1>EV Charging Benchmarking</h1>
-      <p class=\"sub\">这是一个电动车充电与电池性能 benchmarking 网站，用于持续对比不同车型在快充速度、续航、电池指标上的表现，支持定期更新与趋势追踪。</p>
+      <h1 data-i18n=\"intro_title\">EV Charging Benchmarking</h1>
+      <p class=\"sub\" data-i18n=\"intro_sub\">这是一个电动车充电与电池性能 benchmarking 网站，用于持续对比不同车型在快充速度、续航、电池指标上的表现，支持定期更新与趋势追踪。</p>
       <div class=\"meta\">
-        <span class=\"pill\">最新数据日期: {latest_date}</span>
-        <span class=\"pill\">数据源: 懂车帝参数页 + 日报处理结果</span>
-        <span class=\"pill\">Purpose: 性能对比、选型参考、趋势监控</span>
+        <span class=\"pill\"><span data-i18n=\"intro_meta_latest\">最新数据日期:</span> {latest_date}</span>
+        <span class=\"pill\" data-i18n=\"intro_meta_source\">数据源: 懂车帝参数页 + 日报处理结果</span>
+        <span class=\"pill\" data-i18n=\"intro_meta_purpose\">Purpose: 性能对比、选型参考、趋势监控</span>
       </div>
       <div class=\"grid\">
-        <article class=\"card\"><h3>数据源</h3><p class=\"sub\">来自懂车帝车型参数页抓取与日报筛选（纯电、价格阈值）。</p></article>
-        <article class=\"card\"><h3>Benchmark 维度</h3><p class=\"sub\">快充时间、充电窗口、高压平台、电池容量、电池能量密度、CLTC续航等。</p></article>
-        <article class=\"card\"><h3>使用方式</h3><p class=\"sub\">先看数据表，再看可视化，最后在趋势页查看关键 takeaway。</p></article>
+        <article class=\"card\"><h3 data-i18n=\"intro_card_source_title\">数据源</h3><p class=\"sub\" data-i18n=\"intro_card_source_sub\">来自懂车帝车型参数页抓取与日报筛选（纯电、价格阈值）。</p></article>
+        <article class=\"card\"><h3 data-i18n=\"intro_card_bench_title\">Benchmark 维度</h3><p class=\"sub\" data-i18n=\"intro_card_bench_sub\">快充时间、充电窗口、高压平台、电池容量、电池能量密度、CLTC续航等。</p></article>
+        <article class=\"card\"><h3 data-i18n=\"intro_card_usage_title\">使用方式</h3><p class=\"sub\" data-i18n=\"intro_card_usage_sub\">先看数据表，再看可视化，最后在趋势页查看关键 takeaway。</p></article>
       </div>
-      <p class=\"foot\">注: 本站采用最新一期数据覆盖发布（适合按月更新），页面 2/3/4 均基于同一期数据构建。</p>
+      <p class=\"foot\" data-i18n=\"intro_foot\">注: 本站采用最新一期数据覆盖发布（适合按月更新），页面 2/3/4 均基于同一期数据构建。</p>
     </section>
   </div>
+{_language_script('intro')}
 </body>
 </html>
 """
@@ -383,46 +624,46 @@ def _build_data_html(latest_date: str, rows: list[dict[str, str]]) -> str:
 
         filter_html = f"""
       <div class=\"filter-shell\">
-        <h3 class=\"filter-title\">Filter</h3>
+        <h3 class=\"filter-title\" data-i18n=\"data_filter_title\">筛选</h3>
         <div class=\"filter-row\">
-          <label class=\"chip\">品牌
+          <label class=\"chip\"><span data-i18n=\"data_filter_brand\">品牌</span>
             <select id=\"brandFilter\"> 
-              <option value=\"\">全部</option>
+              <option value=\"\" data-i18n=\"data_filter_all\">全部</option>
               {''.join(f'<option value="{html.escape(x)}">{html.escape(x)}</option>' for x in brands)}
             </select>
           </label>
-          <label class=\"chip\">动力形式
+          <label class=\"chip\"><span data-i18n=\"data_filter_power\">动力形式</span>
             <select id=\"powerFilter\">
-              <option value=\"\">全部</option>
+              <option value=\"\" data-i18n=\"data_filter_all\">全部</option>
               {''.join(f'<option value="{html.escape(x)}">{html.escape(x)}</option>' for x in powers)}
             </select>
           </label>
-          <label class=\"chip\">高压平台
+          <label class=\"chip\"><span data-i18n=\"data_filter_hv\">高压平台</span>
             <select id=\"hvFilter\">
-              <option value=\"\">全部</option>
+              <option value=\"\" data-i18n=\"data_filter_all\">全部</option>
               <option value=\"800V及以上\">800V及以上</option>
               <option value=\"800V以下\">800V以下</option>
-              <option value=\"未知\">未知</option>
+              <option value=\"未知\" data-i18n=\"data_filter_unknown\">未知</option>
             </select>
           </label>
-          <label class=\"chip\">电池类型
+          <label class=\"chip\"><span data-i18n=\"data_filter_battery\">电池类型</span>
             <select id=\"batteryFilter\">
-              <option value=\"\">全部</option>
+              <option value=\"\" data-i18n=\"data_filter_all\">全部</option>
               {''.join(f'<option value="{html.escape(x)}">{html.escape(x)}</option>' for x in batteries)}
             </select>
           </label>
-          <label class=\"chip\">电芯品牌
+          <label class=\"chip\"><span data-i18n=\"data_filter_cell_brand\">电芯品牌</span>
             <select id=\"cellBrandFilter\">
-              <option value=\"\">全部</option>
+              <option value=\"\" data-i18n=\"data_filter_all\">全部</option>
               {''.join(f'<option value="{html.escape(x)}">{html.escape(x)}</option>' for x in cell_brands)}
             </select>
           </label>
-          <label class=\"chip search\">模糊搜索
-            <input id=\"keywordFilter\" type=\"text\" placeholder=\"车型/品牌/电池关键字\" />
+          <label class=\"chip search\"><span data-i18n=\"data_filter_keyword\">模糊搜索</span>
+            <input id=\"keywordFilter\" type=\"text\" placeholder=\"车型/品牌/电池关键字\" data-i18n-placeholder=\"data_filter_placeholder\" />
           </label>
-          <button id=\"clearFilters\" class=\"chip-btn\" type=\"button\">清空筛选</button>
+          <button id=\"clearFilters\" class=\"chip-btn\" type=\"button\" data-i18n=\"data_filter_clear\">清空筛选</button>
         </div>
-        <p class=\"sub\" id=\"filterStat\" style=\"margin-top:10px\">显示全部 {len(rows)} 条记录</p>
+        <p class=\"sub\" id=\"filterStat\" data-filtered-rows=\"{len(rows)}\" style=\"margin-top:10px\" data-i18n=\"data_stat_all\">显示全部 {len(rows)} 条记录</p>
       </div>
 """
 
@@ -486,7 +727,12 @@ def _build_data_html(latest_date: str, rows: list[dict[str, str]]) -> str:
           }
         });
 
-        stat.textContent = `筛选后显示 ${visible} 条记录`;
+        stat.dataset.filteredRows = String(visible);
+        if (typeof window.updateDataStatText === 'function') {
+          window.updateDataStatText(visible);
+        } else {
+          stat.textContent = `筛选后显示 ${visible} 条记录`;
+        }
       }
 
       brand.addEventListener('change', applyFilters);
@@ -520,17 +766,18 @@ def _build_data_html(latest_date: str, rows: list[dict[str, str]]) -> str:
   <div class=\"shell\">
     {_nav('data')}
     <section class=\"panel\">
-      <h1>Charging & Battery 参数数据表</h1>
-      <p class=\"sub\">此页展示最新抓取与处理后的 benchmarking 表格，供横向对比和二次分析。该页会随日报定期更新。</p>
+      <h1 data-i18n=\"data_title\">Charging & Battery 参数数据表</h1>
+      <p class=\"sub\" data-i18n=\"data_sub\">此页展示最新抓取与处理后的 benchmarking 表格，供横向对比和二次分析。该页会随日报定期更新。</p>
       <div class=\"meta\">
-        <span class=\"pill\">数据日期: {latest_date}</span>
-        <span class=\"pill\">记录数: {len(rows)}</span>
-        <span class=\"pill\">数据文件: reports/{latest_date}/filtered.csv</span>
+        <span class=\"pill\"><span data-i18n=\"data_meta_date\">数据日期:</span> {latest_date}</span>
+        <span class=\"pill\"><span data-i18n=\"data_meta_rows\">记录数:</span> {len(rows)}</span>
+        <span class=\"pill\"><span data-i18n=\"data_meta_file\">数据文件:</span> reports/{latest_date}/filtered.csv</span>
       </div>
       {filter_html}
       {table_html}
     </section>
   </div>
+{_language_script('data', len(rows))}
 {script_html}
 </body>
 </html>
@@ -551,15 +798,16 @@ def _build_dashboard_html(latest_date: str) -> str:
   <div class=\"shell\">
     {_nav('dash')}
     <section class=\"panel\">
-      <h1>可视化 Dashboard</h1>
-      <p class=\"sub\">该可视化由数据表页同源数据自动生成，用于快速观察车型分布、充电效率与关键指标差异。</p>
+      <h1 data-i18n=\"dash_title\">可视化 Dashboard</h1>
+      <p class=\"sub\" data-i18n=\"dash_sub\">该可视化由数据表页同源数据自动生成，用于快速观察车型分布、充电效率与关键指标差异。</p>
       <div class=\"meta\">
-        <span class=\"pill\">数据日期: {latest_date}</span>
-        <span class=\"pill\">来源: data.html 同批数据</span>
+        <span class=\"pill\"><span data-i18n=\"dash_meta_date\">数据日期:</span> {latest_date}</span>
+        <span class=\"pill\" data-i18n=\"dash_meta_source\">来源: data.html 同批数据</span>
       </div>
       <iframe class=\"frame\" src=\"{dashboard}\" title=\"Charging Dashboard\"></iframe>
     </section>
   </div>
+{_language_script('dash')}
 </body>
 </html>
 """
@@ -711,37 +959,38 @@ def _build_insights_html(latest_date: str, rows: list[dict[str, str]]) -> str:
   <div class=\"shell\">
     {_nav('insights')}
     <section class=\"panel\">
-      <h1>趋势总结与 Takeaways</h1>
-      <p class=\"sub\">基于数据表页与 Dashboard 同批数据，提炼关键趋势与可执行结论，帮助你快速做车型性能 benchmarking 决策。</p>
+      <h1 data-i18n=\"ins_title\">趋势总结与 Takeaways</h1>
+      <p class=\"sub\" data-i18n=\"ins_sub\">基于数据表页与 Dashboard 同批数据，提炼关键趋势与可执行结论，帮助你快速做车型性能 benchmarking 决策。</p>
       <div class=\"meta\">
-        <span class=\"pill\">数据日期: {latest_date}</span>
-        <span class=\"pill\">样本数: {total}</span>
-        <span class=\"pill\">800V及以上占比: {high_ratio:.1f}%</span>
-        <span class=\"pill\">平均快充时间: {f'{avg_fast:.1f} 分钟' if avg_fast is not None else '未明确'}</span>
+        <span class=\"pill\"><span data-i18n=\"ins_meta_date\">数据日期:</span> {latest_date}</span>
+        <span class=\"pill\"><span data-i18n=\"ins_meta_samples\">样本数:</span> {total}</span>
+        <span class=\"pill\"><span data-i18n=\"ins_meta_hv\">800V及以上占比:</span> {high_ratio:.1f}%</span>
+        <span class=\"pill\"><span data-i18n=\"ins_meta_avg_fast\">平均快充时间:</span> {f'{avg_fast:.1f} 分钟' if avg_fast is not None else '未明确'}</span>
       </div>
 
-      <h2 style=\"margin-top:16px\">同步结论（来自数据表与 Dashboard 同批数据）</h2>
+      <h2 style=\"margin-top:16px\" data-i18n=\"ins_sync_title\">同步结论（来自数据表与 Dashboard 同批数据）</h2>
       <div class=\"grid\">
         {''.join(f'<article class="card"><p class="sub">{html.escape(line)}</p></article>' for line in insight_lines)}
       </div>
 
-      <h2 style=\"margin-top:16px\">品牌分布 Bubble</h2>
+      <h2 style=\"margin-top:16px\" data-i18n=\"ins_bubble_title\">品牌分布 Bubble</h2>
       <div class=\"bubble-wrap\"><div id=\"brandBubble\" class=\"bubble-chart\"></div></div>
 
-      <h2 style=\"margin-top:16px\">最快快充车型（Top 5）</h2>
+      <h2 style=\"margin-top:16px\" data-i18n=\"ins_fast_title\">最快快充车型（Top 5）</h2>
       {_render_rank_row(fastest, 'fast')}
 
-      <h2 style=\"margin-top:16px\">最慢快充车型（Bottom 5）</h2>
+      <h2 style=\"margin-top:16px\" data-i18n=\"ins_slow_title\">最慢快充车型（Bottom 5）</h2>
       {_render_rank_row(slowest, 'slow')}
 
-      <h2 style=\"margin-top:16px\">Takeaways</h2>
+      <h2 style=\"margin-top:16px\" data-i18n=\"ins_takeaways_title\">Takeaways</h2>
       <div class=\"grid\">
-        <article class=\"card\"><h3>1. 高压平台渗透</h3><p class=\"sub\">高压平台占比可用于判断高功率快充基础能力，适合持续按周追踪其变化。</p></article>
-        <article class=\"card\"><h3>2. 充电效率分化</h3><p class=\"sub\">同价位车型快充时间差异明显，建议结合充电窗口与电池容量做综合比较。</p></article>
-        <article class=\"card\"><h3>3. 品牌策略差异</h3><p class=\"sub\">品牌在电池容量和快充时间上的取舍不同，可用于产品定位和竞品研究。</p></article>
+        <article class=\"card\"><h3 data-i18n=\"ins_t1_title\">1. 高压平台渗透</h3><p class=\"sub\" data-i18n=\"ins_t1_sub\">高压平台占比可用于判断高功率快充基础能力，适合持续按周追踪其变化。</p></article>
+        <article class=\"card\"><h3 data-i18n=\"ins_t2_title\">2. 充电效率分化</h3><p class=\"sub\" data-i18n=\"ins_t2_sub\">同价位车型快充时间差异明显，建议结合充电窗口与电池容量做综合比较。</p></article>
+        <article class=\"card\"><h3 data-i18n=\"ins_t3_title\">3. 品牌策略差异</h3><p class=\"sub\" data-i18n=\"ins_t3_sub\">品牌在电池容量和快充时间上的取舍不同，可用于产品定位和竞品研究。</p></article>
       </div>
     </section>
   </div>
+  {_language_script('insights')}
   {bubble_script}
 </body>
 </html>
