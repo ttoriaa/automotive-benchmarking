@@ -1,0 +1,3 @@
+
+# Ignore Python bytecode cache in bundled skill scripts
+.github/skills/dongchedi-charging-confluence-pipeline/scripts/__pycache__/
