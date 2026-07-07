@@ -1,0 +1,22 @@
+{
+  "base_source": "C:\\Users\\Q653867\\OneDrive - BMW Group\\Desktop\\V\\vikipedia-agents\\dongchedi_full_configs_2026-06-15.csv",
+  "output_csv": "C:\\Users\\Q653867\\OneDrive - BMW Group\\Desktop\\V\\vikipedia-agents\\dongchedi_full_configs_2026-06-15.csv",
+  "target_series": 1,
+  "refreshed_series": 0,
+  "success_rate": 0.0,
+  "strict_mode": false,
+  "min_success_rate": 0.0,
+  "failed_series": 1,
+  "failures": [
+    "3503: Series 3503 refresh failed: HTTPSConnectionPool(host='www.dongchedi.com', port=443): Max retries exceeded with url: /auto/params-carIds-x-3503 (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.dongchedi.com', port=443) at 0x22846b38a50>, 'Connection to www.dongchedi.com timed out. (connect timeout=3)'))"
+  ],
+  "series_results": [
+    {
+      "series_id": "3503",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 3503 refresh failed: HTTPSConnectionPool(host='www.dongchedi.com', port=443): Max retries exceeded with url: /auto/params-carIds-x-3503 (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.dongchedi.com', port=443) at 0x22846b38a50>, 'Connection to www.dongchedi.com timed out. (connect timeout=3)'))"
+    }
+  ],
+  "row_count": 121
+}
