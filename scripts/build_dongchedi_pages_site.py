@@ -139,24 +139,25 @@ def _base_style() -> str:
     return """
   <style>
     :root {
-      --bg1: #fff6eb;
-      --bg2: #edf5ff;
-      --ink: #12202b;
-      --muted: #5d6874;
-      --line: rgba(18, 32, 43, 0.14);
-      --card: rgba(255, 255, 255, 0.88);
-      --accent: #c55300;
-      --accent-2: #ff8a00;
+      --bg1: #070d18;
+      --bg2: #0d1830;
+      --ink: #e7efff;
+      --muted: #9cb3d5;
+      --line: rgba(163, 189, 255, 0.24);
+      --card: rgba(11, 18, 32, 0.82);
+      --accent: #7a5bff;
+      --accent-2: #a76dff;
+      --chip: rgba(16, 26, 43, 0.92);
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
       color: var(--ink);
       background:
-        radial-gradient(900px 480px at 0% 0%, #ffd9b7 0%, transparent 55%),
-        radial-gradient(1000px 520px at 100% 10%, #c4e0ff 0%, transparent 55%),
-        linear-gradient(145deg, var(--bg1), var(--bg2));
+        radial-gradient(1000px 520px at 6% 2%, rgba(122, 91, 255, 0.36), transparent 56%),
+        radial-gradient(980px 520px at 98% 6%, rgba(82, 152, 255, 0.26), transparent 58%),
+        linear-gradient(155deg, var(--bg1), var(--bg2));
       min-height: 100vh;
       padding: 20px;
     }
@@ -169,9 +170,10 @@ def _base_style() -> str:
       margin-bottom: 14px;
       background: var(--card);
       border: 1px solid var(--line);
-      border-radius: 16px;
+      border-radius: 18px;
       padding: 10px;
-      box-shadow: 0 12px 30px rgba(0,0,0,.06);
+      box-shadow: 0 20px 44px rgba(0,0,0,.34);
+      backdrop-filter: blur(6px);
     }
     .nav a {
       text-decoration: none;
@@ -179,7 +181,7 @@ def _base_style() -> str:
       padding: 8px 14px;
       border-radius: 999px;
       border: 1px solid var(--line);
-      background: #fff;
+      background: var(--chip);
       font-weight: 600;
       font-size: 14px;
     }
@@ -198,7 +200,7 @@ def _base_style() -> str:
     }
     .lang-btn {
       border: 1px solid var(--line);
-      background: #fff;
+      background: var(--chip);
       color: var(--ink);
       padding: 7px 11px;
       border-radius: 999px;
@@ -214,9 +216,10 @@ def _base_style() -> str:
     .panel {
       background: var(--card);
       border: 1px solid var(--line);
-      border-radius: 18px;
+      border-radius: 20px;
       padding: 22px;
-      box-shadow: 0 16px 42px rgba(0,0,0,.08);
+      box-shadow: 0 26px 58px rgba(0,0,0,.42);
+      backdrop-filter: blur(6px);
     }
     h1 { margin: 0 0 8px; font-size: 34px; }
     h2 { margin: 0 0 8px; font-size: 22px; }
@@ -224,7 +227,7 @@ def _base_style() -> str:
     .meta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
     .pill {
       border: 1px solid var(--line);
-      background: #fff;
+      background: var(--chip);
       border-radius: 999px;
       padding: 6px 10px;
       font-size: 13px;
@@ -234,25 +237,25 @@ def _base_style() -> str:
     .card {
       border: 1px solid var(--line);
       border-radius: 14px;
-      background: #fff;
+      background: rgba(14, 24, 42, 0.9);
       padding: 14px;
     }
     .table-wrap {
       overflow: auto;
       border: 1px solid var(--line);
       border-radius: 12px;
-      background: #fff;
+      background: rgba(8, 15, 27, 0.84);
       margin-top: 14px;
     }
     table { border-collapse: collapse; width: 100%; font-size: 13px; }
-    th, td { border-bottom: 1px solid #edf0f3; padding: 8px 10px; text-align: left; white-space: nowrap; }
-    th { position: sticky; top: 0; background: #f8fafc; z-index: 1; }
+    th, td { border-bottom: 1px solid rgba(163, 189, 255, 0.16); padding: 8px 10px; text-align: left; white-space: nowrap; }
+    th { position: sticky; top: 0; background: rgba(16, 29, 51, 0.96); z-index: 1; }
     .frame {
       width: 100%;
       height: min(78vh, 920px);
       border: 1px solid var(--line);
       border-radius: 12px;
-      background: #fff;
+      background: rgba(8, 15, 27, 0.9);
       margin-top: 12px;
     }
     .missing-badge {
@@ -260,9 +263,9 @@ def _base_style() -> str:
       align-items: center;
       padding: 3px 8px;
       border-radius: 999px;
-      border: 1px solid rgba(93, 104, 116, 0.18);
-      background: #eef2f6;
-      color: #6b7683;
+      border: 1px solid rgba(163, 189, 255, 0.25);
+      background: rgba(37, 53, 76, 0.82);
+      color: #b8cbe8;
       font-size: 12px;
       font-weight: 600;
       line-height: 1.2;
@@ -271,7 +274,7 @@ def _base_style() -> str:
       margin-top: 14px;
       border: 1px solid var(--line);
       border-radius: 14px;
-      background: #fff;
+      background: rgba(14, 24, 42, 0.88);
       padding: 14px;
     }
     .filter-title {
@@ -291,7 +294,7 @@ def _base_style() -> str:
       gap: 6px;
       border: 1px solid var(--line);
       border-radius: 999px;
-      background: #fff;
+      background: var(--chip);
       padding: 6px 10px;
       font-size: 13px;
       color: var(--muted);
@@ -311,7 +314,7 @@ def _base_style() -> str:
     .chip-btn {
       border: 1px solid var(--line);
       border-radius: 999px;
-      background: #fff;
+      background: var(--chip);
       color: var(--ink);
       padding: 7px 12px;
       font-size: 13px;
@@ -319,7 +322,7 @@ def _base_style() -> str:
       cursor: pointer;
     }
     .chip-btn:hover {
-      background: #f8fafc;
+      background: rgba(24, 39, 64, 0.95);
     }
     .foot { margin-top: 12px; color: var(--muted); font-size: 12px; }
     @media (max-width: 700px) {
