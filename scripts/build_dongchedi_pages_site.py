@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 REPORT_ROOT = ROOT / "reports" / "dongchedi_daily"
 SITE_ROOT = ROOT / "site"
+ASSISTANT_WIDGET_SRC = ROOT / "assistant-widget.js"
 
 
 def _report_dirs() -> list[Path]:
@@ -81,6 +82,11 @@ def _write_latest_alias(report_dir: Path) -> None:
 </html>
 """
     (latest_dir / "index.html").write_text(index_html, encoding="utf-8")
+
+
+def _copy_assistant_widget() -> None:
+    if ASSISTANT_WIDGET_SRC.exists():
+        shutil.copy2(ASSISTANT_WIDGET_SRC, SITE_ROOT / "assistant-widget.js")
 
 
 def _load_rows(path: Path) -> list[dict[str, str]]:
@@ -868,10 +874,35 @@ def _build_dashboard_html(latest_date: str) -> str:
       <div class=\"meta\">
         <span class=\"pill\"><span data-i18n=\"dash_meta_date\">数据日期:</span> {latest_date}</span>
         <span class=\"pill\" data-i18n=\"dash_meta_source\">来源: data.html 同批数据</span>
+        <span class=\"pill\">AI Assistant: GLM</span>
       </div>
       <iframe class=\"frame\" src=\"{dashboard}\" title=\"Charging Dashboard\"></iframe>
+      <p class=\"foot\">AI Assistant 通过后端代理调用 GLM，页面端不保存也不暴露 API Key。</p>
     </section>
   </div>
+  <script>
+    (function () {{
+      window.__VIKI_ASSISTANT_CONFIG__ = {{
+        endpoint: "https://resume-tailor-1x7i.onrender.com/api/assistant/query",
+        method: "POST",
+        protocol: "assistant_query",
+        provider: "glm",
+        model: "glm-4.5-flash",
+        stream: false,
+        context: "Charging Dashboard (automotive-benchmarking)",
+        titleZh: "充电助手",
+        titleEn: "Charging Copilot",
+        launcherZh: "充电助手",
+        launcherEn: "Charging Copilot",
+        answerPaths: [
+          "answer",
+          "output_text",
+          "choices.0.message.content"
+        ]
+      }};
+    }})();
+  </script>
+  <script src=\"assistant-widget.js?v=20260708-glm-dashboard\"></script>
 {_language_script('dash')}
 </body>
 </html>
@@ -1099,6 +1130,7 @@ def main() -> None:
 
     _copy_report_dir(latest_report)
     _write_latest_alias(latest_report)
+    _copy_assistant_widget()
     (SITE_ROOT / "index.html").write_text(_build_intro_html(latest_date), encoding="utf-8")
     (SITE_ROOT / "data.html").write_text(_build_data_html(latest_date, latest_rows), encoding="utf-8")
     (SITE_ROOT / "dashboard.html").write_text(_build_dashboard_html(latest_date), encoding="utf-8")
