@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Assistant Widget Demo</title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(145deg, #07111f, #132646);
+      color: #eaf2ff;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .card {
+      max-width: 760px;
+      width: 100%;
+      background: rgba(11, 18, 32, 0.9);
+      border: 1px solid rgba(163, 189, 255, 0.24);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.28);
+    }
+    h1 { margin: 0 0 8px; font-size: 30px; }
+    p { line-height: 1.65; color: #9cb3d5; }
+    .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .links a { color: white; text-decoration: none; background: linear-gradient(135deg, #7a5bff, #a76dff); padding: 8px 14px; border-radius: 999px; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Assistant Widget Demo</h1>
+    <p>这个页面已显式挂载助手小组件，右下角会出现可拖动的对话窗口。你可以直接拖动顶部标题栏来移动它，并发送提问。</p>
+    <div class="links">
+      <a href="index.html">回到首页</a>
+      <a href="site/index.html">站点首页</a>
+      <a href="site/data.html">数据表</a>
+    </div>
+  </div>
+  <script>
+    window.__VIKI_ASSISTANT_CONFIG__ = window.__VIKI_ASSISTANT_CONFIG__ || {};
+    window.__VIKI_ASSISTANT_CONFIG__.context = "Assistant widget demo page";
+  </script>
+  <script src="assistant-widget.js"></script>
+</body>
+</html>
