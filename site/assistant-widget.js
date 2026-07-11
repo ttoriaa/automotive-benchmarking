@@ -140,6 +140,25 @@
     }
   }
 
+  function readPosition(defaultPos) {
+    try {
+      var json = sessionStorage.getItem("vikipedia_widget_position");
+      if (!json) return defaultPos;
+      var pos = JSON.parse(json);
+      return pos && typeof pos === "object" ? pos : defaultPos;
+    } catch (error) {
+      return defaultPos;
+    }
+  }
+
+  function writePosition(pos) {
+    try {
+      sessionStorage.setItem("vikipedia_widget_position", JSON.stringify(pos));
+    } catch (error) {
+      // Ignore storage errors.
+    }
+  }
+
   function detectLang() {
     var fromStorage = readStorage(LANG_KEY, "");
     if (fromStorage === "zh" || fromStorage === "en") return fromStorage;
@@ -155,7 +174,7 @@
       ".viki-assistant{position:fixed;left:18px;bottom:18px;z-index:120;font-family:'Noto Sans SC','Microsoft YaHei',sans-serif;}",
       ".viki-assistant-launcher{border:1px solid rgba(163,189,255,.32);background:linear-gradient(135deg,#7a5bff,#a76dff);color:#fff;border-radius:999px;padding:12px 16px;font-size:13px;font-weight:800;letter-spacing:.01em;cursor:pointer;box-shadow:0 18px 34px rgba(0,0,0,.28);}",
       ".viki-assistant-panel{width:min(360px,calc(100vw - 24px));border-radius:18px;border:1px solid rgba(163,189,255,.25);background:linear-gradient(160deg,rgba(11,18,32,.98),rgba(16,27,46,.95));color:#e7efff;box-shadow:0 26px 58px rgba(0,0,0,.45);overflow:hidden;}",
-      ".viki-assistant-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:14px 14px 10px;border-bottom:1px solid rgba(163,189,255,.2);}",
+      ".viki-assistant-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:14px 14px 10px;border-bottom:1px solid rgba(163,189,255,.2);cursor:move;user-select:none;}",
       ".viki-assistant-header strong{display:block;font-family:'Space Grotesk','Noto Sans SC',sans-serif;font-size:17px;line-height:1;}",
       ".viki-assistant-header p{margin:6px 0 0;color:#a5bbdc;font-size:11px;line-height:1.35;}",
       ".viki-assistant-actions{display:flex;gap:6px;}",
@@ -421,6 +440,16 @@
     var style = readStorage(STYLE_KEY, "warm");
 
     var root = createMarkup(lang, { closed: closed });
+    var initialPos = readPosition({ left: "18px", top: "auto" });
+    root.style.left = initialPos.left || "18px";
+    if (initialPos.top && initialPos.top !== "auto") {
+      root.style.top = initialPos.top;
+      root.style.bottom = "auto";
+    } else {
+      root.style.top = "auto";
+      root.style.bottom = "18px";
+    }
+    root.style.right = "auto";
     document.body.appendChild(root);
 
     var launcher = root.querySelector(".viki-assistant-launcher");
@@ -430,6 +459,10 @@
     var status = root.querySelector(".viki-assistant-status");
     var styleSelect = root.querySelector(".viki-style-select");
     var messages = root.querySelector(".viki-assistant-messages");
+    var header = root.querySelector(".viki-assistant-header");
+    var dragOffsetX = 0;
+    var dragOffsetY = 0;
+    var dragging = false;
     var form = root.querySelector(".viki-assistant-form");
     var textarea = root.querySelector("textarea");
     var chips = root.querySelectorAll(".viki-assistant-chip");
@@ -556,6 +589,52 @@
       event.preventDefault();
       ask(textarea.value);
     });
+
+    function clampPosition(value, max) {
+      return Math.min(Math.max(value, 8), max - 80);
+    }
+
+    function onDragMove(event) {
+      if (!dragging) return;
+      var clientX = event.type.indexOf("touch") === 0 ? event.touches[0].clientX : event.clientX;
+      var clientY = event.type.indexOf("touch") === 0 ? event.touches[0].clientY : event.clientY;
+      var left = clampPosition(clientX - dragOffsetX, window.innerWidth);
+      var top = clampPosition(clientY - dragOffsetY, window.innerHeight);
+      root.style.left = left + "px";
+      root.style.top = top + "px";
+      root.style.bottom = "auto";
+      root.style.right = "auto";
+    }
+
+    function onDragEnd() {
+      if (!dragging) return;
+      dragging = false;
+      document.removeEventListener("mousemove", onDragMove);
+      document.removeEventListener("mouseup", onDragEnd);
+      document.removeEventListener("touchmove", onDragMove);
+      document.removeEventListener("touchend", onDragEnd);
+      writePosition({ left: root.style.left, top: root.style.top });
+    }
+
+    function onDragStart(event) {
+      if (event.target.closest(".viki-assistant-actions")) return;
+      event.preventDefault();
+      var clientX = event.type.indexOf("touch") === 0 ? event.touches[0].clientX : event.clientX;
+      var clientY = event.type.indexOf("touch") === 0 ? event.touches[0].clientY : event.clientY;
+      var rect = root.getBoundingClientRect();
+      dragOffsetX = clientX - rect.left;
+      dragOffsetY = clientY - rect.top;
+      dragging = true;
+      document.addEventListener("mousemove", onDragMove);
+      document.addEventListener("mouseup", onDragEnd);
+      document.addEventListener("touchmove", onDragMove, { passive: false });
+      document.addEventListener("touchend", onDragEnd);
+    }
+
+    if (header) {
+      header.addEventListener("mousedown", onDragStart);
+      header.addEventListener("touchstart", onDragStart, { passive: false });
+    }
 
     chips.forEach(function (chip) {
       chip.addEventListener("click", function () {
