@@ -47,12 +47,18 @@ jobs:
         if: github.event_name != 'push'
         continue-on-error: true
         run: |
+          if [ -f "reports/dongchedi_daily/$RUN_DATE/filtered.csv" ]; then
+            echo "Existing committed report found for $RUN_DATE; skip refresh-source generation."
+            exit 0
+          fi
           python scripts/run_dongchedi_daily.py --date "$RUN_DATE" --skip-confluence --no-backfill-missing --refresh-source --refresh-source-timeout 25 --refresh-source-min-successes 0
 
       - name: Fallback report generation (no refresh)
         if: github.event_name != 'push'
         run: |
-          if [ ! -f "reports/dongchedi_daily/$RUN_DATE/filtered.csv" ]; then
+          if [ -f "reports/dongchedi_daily/$RUN_DATE/filtered.csv" ]; then
+            echo "Using existing committed report for $RUN_DATE."
+          else
             echo "Primary run did not produce filtered.csv, running fallback without refresh-source"
             python scripts/run_dongchedi_daily.py --date "$RUN_DATE" --skip-confluence --no-backfill-missing
           fi
