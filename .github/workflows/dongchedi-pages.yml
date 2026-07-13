@@ -110,6 +110,33 @@ jobs:
           print(f'Using PUBLISH_DATE={publish_date}')
           PY
 
+      - name: Validate publish dataset
+        env:
+          MIN_PUBLISH_ROWS: "50"
+        run: |
+          python - <<'PY'
+          import csv
+          import os
+          from pathlib import Path
+
+          publish_date = os.environ["PUBLISH_DATE"]
+          min_rows = int(os.environ.get("MIN_PUBLISH_ROWS", "50"))
+          csv_path = Path("reports") / "dongchedi_daily" / publish_date / "filtered.csv"
+
+          if not csv_path.exists():
+              raise SystemExit(f"Publish dataset missing: {csv_path}")
+
+          with csv_path.open("r", encoding="utf-8-sig", newline="") as handle:
+              row_count = sum(1 for _ in csv.DictReader(handle))
+
+          print(f"Publish dataset row_count={row_count}, min_rows={min_rows}, path={csv_path}")
+          if row_count < min_rows:
+              raise SystemExit(
+                  f"Refusing to deploy partial dataset for {publish_date}: "
+                  f"row_count={row_count} < min_rows={min_rows}"
+              )
+          PY
+
       - name: Build visualization
         run: |
           python scripts/build_charging_visualizations.py --date "$PUBLISH_DATE"
