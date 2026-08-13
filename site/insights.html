@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Insights & Takeaways</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
   <style>
     :root {
       --bg1: #fff6eb;
@@ -61,11 +61,9 @@
       border-radius: 18px;
       padding: 22px;
       box-shadow: 0 16px 42px rgba(0,0,0,.08);
-      margin-bottom: 20px;
     }
     h1 { margin: 0 0 8px; font-size: 34px; }
     h2 { margin: 0 0 8px; font-size: 22px; }
-    h3 { margin: 0 0 6px; font-size: 16px; }
     .sub { color: var(--muted); line-height: 1.7; margin: 6px 0 0; }
     .meta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
     .pill {
@@ -102,109 +100,22 @@
       margin-top: 12px;
     }
     .foot { margin-top: 12px; color: var(--muted); font-size: 12px; }
-    .top-card {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: linear-gradient(135deg, #fff 0%, #fff8f0 100%);
-      padding: 16px;
-      position: relative;
-      overflow: hidden;
-    }
-    .top-card .rank {
-      position: absolute;
-      top: 8px;
-      right: 12px;
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--accent);
-      opacity: 0.25;
-    }
-    .top-card .value {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--accent);
-    }
-    .top-card .unit {
-      font-size: 14px;
-      color: var(--muted);
-      margin-left: 4px;
-    }
-    .top-card .car-name {
-      font-size: 14px;
-      font-weight: 600;
-      margin-top: 6px;
-      line-height: 1.4;
-    }
-    .top-card .brand-tag {
-      display: inline-block;
-      font-size: 12px;
-      color: var(--muted);
-      background: #f0f4f8;
-      border-radius: 6px;
-      padding: 2px 8px;
-      margin-top: 6px;
-    }
-    .chart-container {
-      position: relative;
-      width: 100%;
-      max-width: 800px;
-      height: 400px;
-      margin: 14px auto 0;
-    }
-    .brand-intro {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: #fff;
-      padding: 16px;
-      transition: box-shadow 0.2s;
-    }
-    .brand-intro:hover {
-      box-shadow: 0 4px 16px rgba(0,0,0,.08);
-    }
-    .brand-intro h3 {
-      font-size: 18px;
-      margin-bottom: 8px;
-      color: var(--ink);
-    }
-    .brand-intro .badge {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 600;
-      color: #fff;
-      background: var(--accent);
-      border-radius: 4px;
-      padding: 2px 8px;
-      margin-left: 8px;
-      vertical-align: middle;
-    }
-    .brand-intro p {
-      font-size: 14px;
-      line-height: 1.7;
-      color: var(--muted);
-      margin: 4px 0 0;
-    }
-    .section-divider {
-      border: none;
-      border-top: 1px solid var(--line);
-      margin: 24px 0;
-    }
     @media (max-width: 700px) {
       body { padding: 10px; }
       h1 { font-size: 26px; }
       .frame { height: min(68vh, 680px); }
-      .chart-container { height: 320px; }
     }
   </style>
+
 </head>
 <body>
   <div class="shell">
     <nav class="nav"><a class="" href="index.html">首页简介</a><a class="" href="data.html">数据表</a><a class="" href="dashboard.html">可视化</a><a class="active" href="insights.html">趋势总结</a></nav>
-
     <section class="panel">
       <h1>趋势总结与 Takeaways</h1>
       <p class="sub">基于数据表页同批数据，提炼关键趋势与可执行结论，帮助你快速做车型性能 benchmarking 决策。</p>
       <div class="meta">
-        <span class="pill">数据日期: 2026-08-07</span>
+        <span class="pill">数据日期: 2026-08-13</span>
         <span class="pill">样本数: 97</span>
         <span class="pill">800V及以上占比: 67.0%</span>
         <span class="pill">平均快充时间: 17.8 分钟</span>
@@ -226,207 +137,6 @@
         <article class="card"><h3>3. 品牌策略差异</h3><p class="sub">品牌在电池容量和快充时间上的取舍不同，可用于产品定位和竞品研究。</p></article>
       </div>
     </section>
-
-    <!-- ===== 新模块 1: 极限性能 Top3 ===== -->
-    <section class="panel">
-      <h1>极限性能 Top 3</h1>
-      <p class="sub">从 97 款车型中提取纯电续航、快充时间、电池容量三项核心指标的最高表现，快速定位行业标杆车型。</p>
-
-      <h2 style="margin-top:20px">纯电续航里程（工信部）Top 3</h2>
-      <div class="grid">
-        <article class="top-card">
-          <span class="rank">1</span>
-          <div class="value">1008<span class="unit">km</span></div>
-          <div class="car-name">埃安AION LX PLUS 千里版</div>
-          <span class="brand-tag">埃安</span>
-        </article>
-        <article class="top-card">
-          <span class="rank">2</span>
-          <div class="value">950<span class="unit">km</span></div>
-          <div class="car-name">远航汽车远航H9 950km 四驱远航版</div>
-          <span class="brand-tag">远航汽车</span>
-        </article>
-        <article class="top-card">
-          <span class="rank">3</span>
-          <div class="value">901<span class="unit">km</span></div>
-          <div class="car-name">岚图岚图知音 超长续航乾崑版</div>
-          <span class="brand-tag">岚图</span>
-        </article>
-      </div>
-      <p class="sub" style="margin-top:10px">埃安AION LX PLUS 千里版以 1008 km 工信部续航领跑全场，远航H9 凭借 150 kWh 大电池紧随其后，岚图知音乾崑版则以 901 km 位列第三。三款均代表了当前量产纯电车型的续航天花板。</p>
-
-      <h2 style="margin-top:20px">最快快充时间 Top 3</h2>
-      <div class="grid">
-        <article class="top-card">
-          <span class="rank">1</span>
-          <div class="value">10.0<span class="unit">分钟</span></div>
-          <div class="car-name">极氪ZEEKR 7X 103kWh后驱 Max版</div>
-          <span class="brand-tag">极氪</span>
-        </article>
-        <article class="top-card">
-          <span class="rank">2</span>
-          <div class="value">10.0<span class="unit">分钟</span></div>
-          <div class="car-name">极氪ZEEKR 7X 103kWh四驱 Ultra版</div>
-          <span class="brand-tag">极氪</span>
-        </article>
-        <article class="top-card">
-          <span class="rank">3</span>
-          <div class="value">10.0<span class="unit">分钟</span></div>
-          <div class="car-name">昊铂HL 2025款 750 Max五座激光雷达版</div>
-          <span class="brand-tag">昊铂</span>
-        </article>
-      </div>
-      <p class="sub" style="margin-top:10px">极氪 7X 和昊铂 HL 均实现 10 分钟快充（10%→80% 窗口），得益于 900V 高压平台 + 大功率超充桩，代表了当前 6C 级快充的量产水平。</p>
-
-      <h2 style="margin-top:20px">电池容量 Top 3</h2>
-      <div class="grid">
-        <article class="top-card">
-          <span class="rank">1</span>
-          <div class="value">150.0<span class="unit">kWh</span></div>
-          <div class="car-name">远航汽车远航H9 950km 四驱远航版</div>
-          <span class="brand-tag">远航汽车</span>
-        </article>
-        <article class="top-card">
-          <span class="rank">2</span>
-          <div class="value">144.4<span class="unit">kWh</span></div>
-          <div class="car-name">埃安AION LX PLUS 千里版</div>
-          <span class="brand-tag">埃安</span>
-        </article>
-        <article class="top-card">
-          <span class="rank">3</span>
-          <div class="value">122.0<span class="unit">kWh</span></div>
-          <div class="car-name">奔驰EQS SUV 2025款 EQS 500 4MATIC</div>
-          <span class="brand-tag">奔驰</span>
-        </article>
-      </div>
-      <p class="sub" style="margin-top:10px">远航H9 以 150 kWh 电池包成为全场最大容量车型，埃安 LX PLUS 千里版以 144.4 kWh 紧随其后，奔驰 EQS SUV 以 122 kWh 位列第三。大容量电池是超长续航的基础，但也对能量密度和轻量化提出了更高要求。</p>
-    </section>
-
-    <!-- ===== 新模块 2: 电芯品牌分布 ===== -->
-    <section class="panel">
-      <h1>电芯品牌分布与供应商研究</h1>
-      <p class="sub">统计 97 款车型的电芯供应商分布，并对主要电芯品牌做深度研究介绍，帮助理解供应链格局。</p>
-
-      <div class="chart-container">
-        <canvas id="cellBrandChart"></canvas>
-      </div>
-
-      <hr class="section-divider" />
-
-      <h2>电芯品牌详细介绍</h2>
-      <div class="grid">
-
-        <article class="brand-intro">
-          <h3>宁德时代 (CATL) <span class="badge">36+10+4 = 50 款</span></h3>
-          <p>宁德时代新能源科技股份有限公司（CATL）成立于2011年，总部位于福建宁德，是全球领先的新能源创新科技公司。2025年净利润达722亿元，同比增长42%，全球动力电池装机量稳居第一。公司业务覆盖动力电池、储能电池、电池回收全产业链，拥有德国慕尼黑、四川宜宾、江苏溧阳等多个生产基地。其麒麟电池、神行超充电池代表了行业最高技术水平，与宝马、特斯拉、奔驰、极氪、埃安等全球主流车企深度合作。在本数据集中，宁德时代（含合资公司时代吉利、江苏时代）覆盖了超过一半的车型，是绝对的市场领导者。</p>
-        </article>
-
-        <article class="brand-intro">
-          <h3>中创新航 (CALB) <span class="badge">23 款</span></h3>
-          <p>中创新航科技集团股份有限公司（CALB）是全球领先的新能源科技企业，前身为中航锂电，总部位于江苏常州。公司以"AI+能源"为战略方向，拥有国家级企业技术中心、院士工作站等科研平台，在常州、成都、厦门、武汉、合肥及欧洲布局了多个动力电池生产基地，规划年产能超190GWh。中创新航先后承担了多项国家重点研发计划和国家863计划项目，产品配套小鹏、广汽、长安、吉利等多家主流车企。在本数据集中以23款车型位列第二大电芯供应商，是宁德时代之外最重要的国产替代力量。</p>
-        </article>
-
-        <article class="brand-intro">
-          <h3>时代吉利 (CATL × Geely) <span class="badge">6 款</span></h3>
-          <p>时代吉利动力电池有限公司成立于2019年4月，由宁德时代（持股51%）与极氪汽车/吉利汽车（持股49%）合资组建，总部位于浙江杭州，生产基地位于四川宜宾。公司充分发挥宁德时代的电池技术优势和吉利的整车制造需求，计划总投资不超过80亿元，建成集销售、技术研发、智能制造于一体的动力电池基地。时代吉利主要配套吉利系车型（极氪、领克等），是车企与电池厂深度绑定的典型案例，代表了车企供应链垂直整合的趋势。</p>
-        </article>
-
-        <article class="brand-intro">
-          <h3>衢州极电 (Geely) <span class="badge">4 款</span></h3>
-          <p>衢州极电电动汽车技术有限公司成立于2022年，是浙江吉利控股集团的全资子公司，投资机构为吉利资本。公司位于浙江衢州，投资约50亿元建设的智能制造工厂是全球规模最大的同类工厂之一，获得了国家智能制造能力成熟度最高等级（CMMM四级）认证。主营业务涵盖电池制造、汽车零部件及配件制造、技术服务等，专注于"三电"（电池、电机、电控）及储能系统的研发制造。衢州极电代表了吉利在新能源核心零部件领域的自主布局，配套极氪等吉利系高端车型。</p>
-        </article>
-
-        <article class="brand-intro">
-          <h3>弗迪电池 (FinDreams / BYD) <span class="badge">3+2 = 5 款</span></h3>
-          <p>弗迪电池是比亚迪股份有限公司全资控股的电池品牌，于2019年正式挂牌成立，立足新能源产业，具备100%自主研发、设计和生产电池的能力。产品覆盖动力电池、储能及新型电池、消费类电池及零部件，构建了完整的电池产业链。2025年其动力电池装机量位居全球第二。弗迪电池以刀片电池技术闻名，主打磷酸铁锂路线，兼顾高安全、低成本和长循环寿命。产品应用于汽车、新能源、消费类电子及轨道交通等领域，是比亚迪垂直整合战略的核心环节。</p>
-        </article>
-
-        <article class="brand-intro">
-          <h3>LG新能源 (LG Energy Solution) <span class="badge">3 款</span></h3>
-          <p>LG新能源（LG Energy Solution）是韩国LG集团旗下专注于电池业务的子公司，前身为LG化学电池事业部，拥有超过30年技术积累，于2020年12月正式拆分独立，2022年在韩国上市。公司拥有超34000名员工及25000项专利，业务涵盖动力电池、储能系统及小型电池，是全球动力电池市场前三强。其中国总部于2024年12月落户南京经济技术开发区，在华运营主体为"爱尔集新能源（中国）有限公司"。LG新能源主要服务特斯拉、通用、Stellantis、现代等国际车企，在本数据集中配套奥迪等品牌车型。</p>
-        </article>
-
-        <article class="brand-intro">
-          <h3>亿纬锂能 (EVE Energy) <span class="badge">1 款</span></h3>
-          <p>惠州亿纬锂能股份有限公司（EVE Energy）成立于2001年，总部位于广东惠州，2009年在深圳证券交易所上市（股票代码300014）。公司主营业务为消费电池、动力电池及储能电池的研发、生产和销售。2025年营业收入约614.7亿元，拥有湖北荆门、广东惠州、马来西亚等多个生产基地。亿纬锂能在2025年实现了大圆柱、大方形电池量产和固态电池成功下线，技术路线覆盖三元锂和磷酸铁锂。公司配套国内外多家主流车企，是动力电池领域的重要参与者。</p>
-        </article>
-
-        <article class="brand-intro">
-          <h3>欣旺达 (Sunwoda) <span class="badge">1 款</span></h3>
-          <p>欣旺达电子股份有限公司创立于1997年，总部位于深圳，2011年在深交所上市（股票代码300207）。公司是全球锂离子电池领域的领军企业，形成了3C消费类电池、智能硬件产品、动力电池和储能电池四大业务板块。2025年公司推出了"欣碧霄"聚合物固态电芯、闪充电池4.0、行业首款重卡专用大容量超充电芯等创新产品。欣旺达从消费电池模组起家，逐步向动力电池领域延伸，已进入苹果、小米等供应链，并为多家新能源车企提供动力电池方案。</p>
-        </article>
-
-      </div>
-    </section>
   </div>
-
-  <script>
-    // Chart.js bar chart for cell brand distribution
-    const ctx = document.getElementById('cellBrandChart').getContext('2d');
-    const cellBrandData = {
-      labels: ['宁德时代', '中创新航', '宁德时代/时代一汽', '时代吉利', '衢州极电', '江苏时代', '弗迪', 'LG', '弗迪/宁德时代', '宁德时代/欣旺达', '亿纬锂能', '未明确显示'],
-      datasets: [{
-        label: '车型数量',
-        data: [36, 23, 10, 6, 4, 4, 3, 3, 2, 1, 1, 4],
-        backgroundColor: [
-          '#c55300', '#ff8a00', '#e8730a', '#f5a045', '#ffb56b',
-          '#ffc78c', '#4a90d9', '#6ba8e8', '#8fc1f0', '#b3d4f5',
-          '#d0e3fa', '#e0e0e0'
-        ],
-        borderColor: [
-          '#a04500', '#cc7000', '#c55300', '#e89000', '#ff9a00',
-          '#ffb050', '#3a7bc8', '#5a98d9', '#7ab1e8', '#9cc4f0',
-          '#b0d0f0', '#c0c0c0'
-        ],
-        borderWidth: 1
-      }]
-    };
-
-    new Chart(ctx, {
-      type: 'bar',
-      data: cellBrandData,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          title: {
-            display: true,
-            text: '电芯品牌占车型数量分布',
-            font: { size: 16, weight: 'bold' },
-            color: '#12202b',
-            padding: { bottom: 16 }
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                const total = 97;
-                const value = context.parsed.y;
-                const pct = ((value / total) * 100).toFixed(1);
-                return value + ' 款 (' + pct + '%)';
-              }
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: { display: true, text: '车型数量', font: { size: 13 } },
-            ticks: { color: '#5d6874', stepSize: 5 },
-            grid: { color: 'rgba(18,32,43,0.06)' }
-          },
-          x: {
-            ticks: {
-              color: '#5d6874',
-              font: { size: 11 },
-              maxRotation: 45,
-              minRotation: 30
-            },
-            grid: { display: false }
-          }
-        }
-      }
-    });
-  </script>
 </body>
 </html>
