@@ -9,12 +9,11 @@ on:
       - reports/**
       - site/**
   schedule:
-    - cron: "0 1 * * 1"
-    - cron: "0 1 1 * *"
+    - cron: "0 1 * * *"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -150,6 +149,19 @@ jobs:
       - name: Assemble Pages site
         run: |
           python scripts/build_dongchedi_pages_site.py --date "$PUBLISH_DATE"
+
+      - name: Commit generated data and site
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports site
+          if git diff --cached --quiet; then
+            echo "No generated data or site changes to commit."
+          else
+            git commit -m "chore: daily sync dongchedi site for $PUBLISH_DATE"
+            git push origin HEAD:main
+          fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
