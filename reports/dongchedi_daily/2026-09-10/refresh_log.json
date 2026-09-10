@@ -1,6 +1,6 @@
 {
   "base_source": "/home/runner/work/automotive-benchmarking/automotive-benchmarking/dongchedi_full_configs_2026-06-15.csv",
-  "output_csv": "/home/runner/work/automotive-benchmarking/automotive-benchmarking/dongchedi_full_configs_2026-09-09.csv",
+  "output_csv": "/home/runner/work/automotive-benchmarking/automotive-benchmarking/dongchedi_full_configs_2026-09-10.csv",
   "target_series": 30,
   "refreshed_series": 0,
   "success_rate": 0.0,
