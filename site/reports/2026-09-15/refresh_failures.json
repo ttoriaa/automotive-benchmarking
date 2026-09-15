@@ -1,45 +1,10 @@
 {
-  "base_source": "/home/runner/work/automotive-benchmarking/automotive-benchmarking/dongchedi_full_configs_2026-06-15.csv",
-  "output_csv": "/home/runner/work/automotive-benchmarking/automotive-benchmarking/dongchedi_full_configs_2026-09-14.csv",
+  "run_date": "2026-09-15",
   "target_series": 30,
   "refreshed_series": 0,
   "success_rate": 0.0,
-  "strict_mode": false,
-  "min_success_rate": 0.0,
   "failed_series": 30,
   "failures": [
-    "3503: no car rows found",
-    "6116: no car rows found",
-    "10177: no car rows found",
-    "20041: no car rows found",
-    "9345: no car rows found",
-    "4363: no car rows found",
-    "5308: no car rows found",
-    "9778: no car rows found",
-    "10180: no car rows found",
-    "10162: no car rows found",
-    "5805: no car rows found",
-    "25079: no car rows found",
-    "8966: no car rows found",
-    "25994: no car rows found",
-    "5832: no car rows found",
-    "9440: no car rows found",
-    "25651: no car rows found",
-    "25621: no car rows found",
-    "9118: no car rows found",
-    "25072: no car rows found",
-    "9833: no car rows found",
-    "10136: no car rows found",
-    "25819: no car rows found",
-    "8835: no car rows found",
-    "4980: no car rows found",
-    "25816: no car rows found",
-    "5461: no car rows found",
-    "25557: no car rows found",
-    "25718: no car rows found",
-    "10178: no car rows found"
-  ],
-  "series_results": [
     {
       "series_id": "3503",
       "status": "failed",
@@ -220,6 +185,5 @@
       "row_count": 0,
       "error": "no car rows found"
     }
-  ],
-  "row_count": 121
+  ]
 }
