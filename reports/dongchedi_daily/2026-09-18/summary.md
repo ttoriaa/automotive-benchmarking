@@ -1,7 +1,7 @@
-<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>摘要</title><style>body{font-family:Segoe UI,PingFang SC,Microsoft YaHei,sans-serif;line-height:1.7;margin:24px;background:#faf7f2;color:#12202b}pre{white-space:pre-wrap;word-break:break-word;background:#fff;border:1px solid rgba(18,32,43,.14);border-radius:16px;padding:20px;box-shadow:0 10px 28px rgba(0,0,0,.05)}</style></head><body><pre># 懂车帝充电日报 2026-09-17
+# 懂车帝充电日报 2026-09-18
 
-- 数据源: dongchedi_full_configs_2026-09-17.csv
-- 筛选规则: 价格&gt;20.0万 且 纯电车型
+- 数据源: dongchedi_full_configs_2026-09-18.csv
+- 筛选规则: 价格>20.0万 且 纯电车型
 - 当日总车型: 97
 - 昨日沿用车型: 0
 - 新增车型: 0
@@ -194,4 +194,3 @@
 | 3503 | 埃安 | 埃安AION LX PLUS 80 智尊版 | 23.66 | 650 | 未明确显示 | 180.0 | 未明确显示 | 未明确显示 | 未明确显示 | 未明确显示 | 未明确显示 | 未明确显示 | 93.3 | 中创新航 | 三元锂电池 | 缺失:高压快充平台、充电时间、充电电量 | 当日采集 |
 | 3503 | 埃安 | 埃安AION LX PLUS 80D Max版 | 23.66 | 600 | 未明确显示 | 175.0 | 未明确显示 | 未明确显示 | 未明确显示 | 未明确显示 | 未明确显示 | 未明确显示 | 93.3 | 中创新航 | 三元锂电池 | 缺失:高压快充平台、充电时间、充电电量 | 当日采集 |
 | 3503 | 埃安 | 埃安AION LX PLUS 80D 旗舰版 | 23.66 | 600 | 未明确显示 | 175.0 | 未明确显示 | 未明确显示 | 未明确显示 | 未明确显示 | 未明确显示 | 未明确显示 | 93.3 | 中创新航 | 三元锂电池 | 缺失:高压快充平台、充电时间、充电电量 | 当日采集 |
-</pre></body></html>
