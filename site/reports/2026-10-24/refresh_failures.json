@@ -1,0 +1,189 @@
+{
+  "run_date": "2026-10-24",
+  "target_series": 30,
+  "refreshed_series": 0,
+  "success_rate": 0.0,
+  "failed_series": 30,
+  "failures": [
+    {
+      "series_id": "3503",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 3503 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "6116",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 6116 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "10177",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 10177 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "20041",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 20041 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "9345",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 9345 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "4363",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 4363 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "5308",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 5308 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "9778",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 9778 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "10180",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 10180 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "10162",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 10162 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "5805",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 5805 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "25079",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 25079 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "8966",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 8966 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "25994",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 25994 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "5832",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 5832 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "9440",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 9440 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "25651",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 25651 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "25621",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 25621 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "9118",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 9118 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "25072",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 25072 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "9833",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 9833 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "10136",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 10136 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "25819",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 25819 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "8835",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 8835 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "4980",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 4980 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "25816",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 25816 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "5461",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 5461 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "25557",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 25557 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "25718",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 25718 refresh failed: __NEXT_DATA__ not found in response"
+    },
+    {
+      "series_id": "10178",
+      "status": "failed",
+      "row_count": 0,
+      "error": "Series 10178 refresh failed: __NEXT_DATA__ not found in response"
+    }
+  ]
+}
